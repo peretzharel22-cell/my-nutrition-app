@@ -450,6 +450,33 @@ def get_community_recipes(limit=50):
         return [dict(r) for r in rows]
 
 
+def get_top_community_recipes(category=None, limit=3):
+    """Return top-rated community recipes sorted by likes count (ranking bias)."""
+    with _conn() as con:
+        if category:
+            rows = con.execute(
+                """SELECT cr.*,
+                   (SELECT COUNT(*) FROM recipe_likes rl WHERE rl.recipe_id = cr.id) AS likes_count,
+                   (SELECT COUNT(*) FROM recipe_saves rs WHERE rs.recipe_id = cr.id) AS saves_count
+                   FROM community_recipes cr
+                   WHERE cr.category = ?
+                   ORDER BY likes_count DESC, cr.shared_at DESC
+                   LIMIT ?""",
+                (category, limit),
+            ).fetchall()
+        else:
+            rows = con.execute(
+                """SELECT cr.*,
+                   (SELECT COUNT(*) FROM recipe_likes rl WHERE rl.recipe_id = cr.id) AS likes_count,
+                   (SELECT COUNT(*) FROM recipe_saves rs WHERE rs.recipe_id = cr.id) AS saves_count
+                   FROM community_recipes cr
+                   ORDER BY likes_count DESC, cr.shared_at DESC
+                   LIMIT ?""",
+                (limit,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+
 def get_recipes_by_user(phone):
     with _conn() as con:
         rows = con.execute(

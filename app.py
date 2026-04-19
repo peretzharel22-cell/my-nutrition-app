@@ -20,19 +20,76 @@ st.set_page_config(page_title="תזונה חכמה", page_icon="🥗", layout="w
 st.markdown(
     """
     <style>
-    body { direction: RTL; text-align: right; }
-    .main .block-container { direction: RTL; text-align: right; }
+    /* ── RTL global ── */
+    body, .main, .main .block-container,
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stText"],
+    .stTextInput > div, .stTextArea > div,
+    .stSelectbox > div, .stRadio > div,
+    .stForm, label, p, h1, h2, h3, h4, h5 {
+        direction: RTL !important;
+        text-align: right !important;
+    }
+    input, textarea, select { direction: RTL !important; text-align: right !important; }
+
+    /* ── Sidebar ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a5c2e, #2d7a45) !important;
+        background: linear-gradient(180deg, #0f3d20, #1a5c2e, #2d7a45) !important;
     }
     [data-testid="stSidebar"] * { color: white !important; }
     [data-testid="stSidebar"] button {
         background: rgba(255,255,255,0.15) !important;
-        border: 1px solid rgba(255,255,255,0.3) !important;
-        margin-bottom: 4px;
+        border: 1px solid rgba(255,255,255,0.35) !important;
+        border-radius: 8px !important;
+        margin-bottom: 6px !important;
+        font-weight: 600 !important;
+        transition: background 0.2s;
     }
-    .stProgress > div > div { background: #2d7a45 !important; }
-    div[data-testid="stForm"] { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; }
+    [data-testid="stSidebar"] button:hover {
+        background: rgba(255,255,255,0.28) !important;
+    }
+
+    /* ── Progress bar ── */
+    .stProgress > div > div { background: linear-gradient(90deg,#2d7a45,#5cb85c) !important; border-radius: 4px; }
+
+    /* ── Forms ── */
+    div[data-testid="stForm"] {
+        border: 1px solid #d4edda;
+        border-radius: 12px;
+        padding: 20px;
+        background: #f9fdf9;
+    }
+
+    /* ── Recipe cards ── */
+    .recipe-card {
+        background: linear-gradient(135deg, #ffffff, #f0faf2);
+        border: 1px solid #c3e6cb;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(45,122,69,0.08);
+    }
+    .community-card {
+        background: linear-gradient(135deg, #fffbf0, #fff8e1);
+        border: 1px solid #ffd54f;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin: 6px 0;
+        box-shadow: 0 2px 6px rgba(255,193,7,0.12);
+    }
+    .stars { color: #f5a623; font-size: 1.1rem; letter-spacing: 2px; }
+    .badge {
+        display: inline-block;
+        background: #2d7a45;
+        color: white !important;
+        border-radius: 20px;
+        padding: 2px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-left: 6px;
+    }
+    .badge-gold { background: #e6a800; }
+    .badge-comm { background: #1565c0; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -64,6 +121,17 @@ for _cat in ("breakfast", "lunch", "dinner"):
 # =============================================================================
 # Shared helpers
 # =============================================================================
+
+def _stars(likes: int) -> str:
+    """Convert like count to a star rating string (1-5 stars)."""
+    if likes >= 50: n = 5
+    elif likes >= 20: n = 4
+    elif likes >= 10: n = 3
+    elif likes >= 3:  n = 2
+    elif likes >= 1:  n = 1
+    else:             n = 0
+    return "★" * n + "☆" * (5 - n)
+
 
 def _safe_web(cat):
     r = st.session_state.get(f"web_{cat}")
@@ -406,7 +474,8 @@ def show_dashboard(uid, u):
         for cat, lbl in [("breakfast", "ארוחת בוקר"),
                           ("lunch",    "ארוחת צהריים"),
                           ("dinner",   "ארוחת ערב")]:
-            st.write(f"### {lbl}")
+            cat_icon = {"breakfast": "🌅", "lunch": "☀️", "dinner": "🌙"}[cat]
+            st.markdown(f"### {cat_icon} {lbl}")
             web_r = _safe_web(cat)
             keys = _sorted_keys(cat, u)
             idx = int(st.session_state[f"swap_{cat}"]) % len(keys)
@@ -417,10 +486,26 @@ def show_dashboard(uid, u):
                 st.markdown("---")
                 continue
 
-            _show_recipe_card(current)
+            # Main recipe card
+            st.markdown(
+                f'<div class="recipe-card">'
+                f'<b>{current.get("name", "---")}</b>'
+                f'{"&nbsp;<span class=\'badge\'>רשת</span>" if current.get("source") in ("web","fallback") else ""}<br>'
+                f'🔥 {current.get("cal",0)} קל\' &nbsp;|&nbsp; '
+                f'💪 {current.get("pro",0)}g חלבון &nbsp;|&nbsp; '
+                f'🍞 {current.get("carb",0)}g פחמימות &nbsp;|&nbsp; '
+                f'🥑 {current.get("fat",0)}g שומן &nbsp;|&nbsp; '
+                f'⏱ {current.get("prep","---")}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            ings = current.get("ingredients") or []
+            if ings:
+                st.caption("מרכיבים: " + " · ".join(str(i) for i in ings[:5]))
+
             b1, b2, b3, b4 = st.columns(4)
 
-            if b1.button("אכלתי", key=f"ate_{cat}"):
+            if b1.button("✅ אכלתי", key=f"ate_{cat}"):
                 cal = int(current.get("cal", 0))
                 db.add_daily_calories(uid, cal)
                 db.log_meal(uid, keys[idx] if not web_r else "web",
@@ -431,12 +516,12 @@ def show_dashboard(uid, u):
                 st.toast(f"{current.get('name', '')} - {cal} קל'")
                 st.rerun()
 
-            if b2.button("החלף", key=f"swap_{cat}_btn"):
+            if b2.button("🔄 החלף", key=f"swap_{cat}_btn"):
                 st.session_state[f"web_{cat}"] = None
                 st.session_state[f"swap_{cat}"] = (idx + 1) % len(keys)
                 st.rerun()
 
-            if b3.button("מהרשת", key=f"web_{cat}_btn"):
+            if b3.button("🌐 מהרשת", key=f"web_{cat}_btn"):
                 off = int(st.session_state.get(f"web_off_{cat}", 0))
                 with st.spinner("מחפש מתכון..."):
                     fetched = fetch_web_recipe(cat, u, off)
@@ -447,9 +532,45 @@ def show_dashboard(uid, u):
                     st.warning("לא נמצא מתכון, נסה שוב.")
                 st.rerun()
 
-            if web_r and b4.button("מקומי", key=f"local_{cat}"):
+            if web_r and b4.button("📋 מקומי", key=f"local_{cat}"):
                 st.session_state[f"web_{cat}"] = None
                 st.rerun()
+
+            # --- Community top-rated recommendations ---
+            top_recs = db.get_top_community_recipes(category=cat, limit=3)
+            if top_recs:
+                with st.expander(f"⭐ המלצות קהילה עבור {lbl}", expanded=False):
+                    st.caption("ממוינות לפי דירוג גבוה ביותר")
+                    for i, rec in enumerate(top_recs):
+                        likes = rec.get("likes_count", 0)
+                        stars = _stars(likes)
+                        medal = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
+                        st.markdown(
+                            f'<div class="community-card">'
+                            f'{medal} <b>{rec["name"]}</b>'
+                            f'&nbsp;<span class="badge badge-comm">קהילה</span><br>'
+                            f'<span class="stars">{stars}</span>'
+                            f'&nbsp; {likes} לייקים'
+                            f'&nbsp;·&nbsp; 🔥 {rec.get("calories",0)} קל\''
+                            f'&nbsp;·&nbsp; 💪 {rec.get("protein",0)}g'
+                            f'&nbsp;·&nbsp; ✍️ {rec.get("username","")}'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                        if rec.get("difficulty") or rec.get("prep_time"):
+                            parts = []
+                            if rec.get("difficulty"): parts.append(f"קושי: {rec['difficulty']}")
+                            if rec.get("prep_time"):  parts.append(f"⏱ {rec['prep_time']}")
+                            st.caption(" · ".join(parts))
+
+                        comm_c1, comm_c2 = st.columns([1, 5])
+                        if comm_c1.button("✅ אכלתי", key=f"comm_ate_{cat}_{rec['id']}"):
+                            db.add_daily_calories(uid, int(rec.get("calories", 0)))
+                            db.log_meal(uid, f"comm_{rec['id']}",
+                                        str(rec["name"]), "pareve", cat,
+                                        int(rec.get("calories", 0)))
+                            st.toast(f"{rec['name']} - {rec.get('calories',0)} קל'")
+                            st.rerun()
 
             st.markdown("---")
 
