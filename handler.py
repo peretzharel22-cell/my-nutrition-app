@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import db
 from datetime import datetime, timezone
