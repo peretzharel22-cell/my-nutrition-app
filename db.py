@@ -128,6 +128,13 @@ def init_db():
             FOREIGN KEY (recipe_id) REFERENCES community_recipes(id),
             FOREIGN KEY (phone) REFERENCES users(phone)
         );
+
+        CREATE TABLE IF NOT EXISTS remember_tokens (
+            token      TEXT PRIMARY KEY,
+            phone      TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (phone) REFERENCES users(phone)
+        );
         """)
         _migrate(con)
 
@@ -555,6 +562,29 @@ def get_liked_recipe_ids(phone):
             "SELECT recipe_id FROM recipe_likes WHERE phone=?", (phone,)
         ).fetchall()
         return {r[0] for r in rows}
+
+
+def create_remember_token(phone: str) -> str:
+    token = uuid.uuid4().hex
+    with _conn() as con:
+        con.execute("DELETE FROM remember_tokens WHERE phone=?", (phone,))
+        con.execute("INSERT INTO remember_tokens (token, phone) VALUES (?,?)", (token, phone))
+    return token
+
+
+def verify_remember_token(token: str):
+    with _conn() as con:
+        r = con.execute(
+            "SELECT phone FROM remember_tokens WHERE token=? "
+            "AND created_at > datetime('now', '-30 days')",
+            (token,),
+        ).fetchone()
+        return r["phone"] if r else None
+
+
+def delete_remember_token(token: str):
+    with _conn() as con:
+        con.execute("DELETE FROM remember_tokens WHERE token=?", (token,))
 
 
 def get_saved_recipe_ids(phone):
