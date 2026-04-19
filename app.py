@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""app.py - Social Nutrition Network — Minimalist Premium (main entry point)"""
+"""app.py - Social Nutrition Network — Professional Premium (main entry point)"""
 
 import streamlit as st
 import pandas as pd
@@ -13,33 +13,22 @@ from handler import (
     fetch_web_recipe, estimate_nutrition,
 )
 
-try:
-    from streamlit_cookies_controller import CookieController
-    _cookies = CookieController()
-    _COOKIES_OK = True
-except Exception:
-    _cookies = None
-    _COOKIES_OK = False
-
 st.set_page_config(page_title="תזונה חכמה", page_icon="🥗", layout="wide")
 
 
 def inject_css() -> None:
-    """Inject all custom CSS. Nothing is printed to the screen."""
     css = """
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
 
-/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Page background: pure white, Instagram-style ── */
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stApp"],
 section[data-testid="stMain"],
 [data-testid="block-container"] {
-    background-color: #FFFFFF !important;
-    color: #1a1a1a !important;
+    background-color: #F8F9FA !important;
+    color: #212529 !important;
     font-family: 'Heebo', sans-serif !important;
     line-height: 1.6 !important;
     direction: rtl;
@@ -53,7 +42,6 @@ section[data-testid="stMain"],
     max-width: 1080px;
 }
 
-/* ── Typography ── */
 [data-testid="stMarkdownContainer"],
 [data-testid="stText"],
 label, p, span {
@@ -61,29 +49,28 @@ label, p, span {
     text-align: right !important;
     font-family: 'Heebo', sans-serif !important;
     line-height: 1.6 !important;
-    color: #1a1a1a !important;
+    color: #212529 !important;
 }
 
 h1, h2, h3, h4, h5 {
     font-family: 'Heebo', sans-serif !important;
     font-weight: 700 !important;
-    color: #1a1a1a !important;
+    color: #212529 !important;
     line-height: 1.3 !important;
     direction: rtl !important;
     text-align: right !important;
 }
 
-/* ── Sidebar ── */
 [data-testid="stSidebar"] {
     background: #FFFFFF !important;
-    border-left: 1px solid #DBDBDB !important;
+    border-left: 1px solid #DEE2E6 !important;
 }
 [data-testid="stSidebar"] * {
-    color: #1a1a1a !important;
+    color: #212529 !important;
     font-family: 'Heebo', sans-serif !important;
 }
 [data-testid="stSidebar"] button {
-    background: #4CAF50 !important;
+    background: #1B4332 !important;
     border: none !important;
     border-radius: 8px !important;
     margin-bottom: 5px !important;
@@ -95,45 +82,41 @@ h1, h2, h3, h4, h5 {
 }
 [data-testid="stSidebar"] button:hover { opacity: 0.80 !important; }
 
-/* ── Progress bar ── */
-.stProgress > div > div { background: #4CAF50 !important; border-radius: 4px !important; }
-.stProgress > div        { background: #EFEFEF !important; border-radius: 4px !important; }
+.stProgress > div > div { background: #1B4332 !important; border-radius: 4px !important; }
+.stProgress > div        { background: #DEE2E6 !important; border-radius: 4px !important; }
 
-/* ── Forms ── */
 div[data-testid="stForm"] {
-    background: #F0F2F5 !important;
-    border: none !important;
-    border-radius: 15px !important;
-    padding: 22px !important;
-    box-shadow: none !important;
+    background: #FFFFFF !important;
+    border: 1px solid #DEE2E6 !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }
 
-/* ── Inputs ── */
 input, textarea, select,
 [data-baseweb="input"] input,
 [data-baseweb="textarea"] textarea {
     direction: rtl !important;
     text-align: right !important;
     background: #FFFFFF !important;
-    color: #1a1a1a !important;
-    border: 1px solid #DBDBDB !important;
-    border-radius: 10px !important;
+    color: #212529 !important;
+    border: 1px solid #DEE2E6 !important;
+    border-radius: 8px !important;
     font-family: 'Heebo', sans-serif !important;
     line-height: 1.6 !important;
     transition: border-color 0.15s ease !important;
 }
 input:focus, textarea:focus {
-    border-color: #4CAF50 !important;
+    border-color: #1B4332 !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(76,175,80,0.10) !important;
+    box-shadow: 0 0 0 3px rgba(27,67,50,0.10) !important;
 }
 
-/* ── Primary buttons ── */
 .stButton > button[kind="primary"],
 [data-testid="stFormSubmitButton"] > button {
-    background: #4CAF50 !important;
+    background: #1B4332 !important;
     border: none !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     font-weight: 700 !important;
     font-family: 'Heebo', sans-serif !important;
     color: #fff !important;
@@ -143,47 +126,44 @@ input:focus, textarea:focus {
 .stButton > button[kind="primary"]:hover,
 [data-testid="stFormSubmitButton"] > button:hover {
     opacity: 0.82 !important;
-    box-shadow: 0 4px 14px rgba(76,175,80,0.25) !important;
+    box-shadow: 0 4px 14px rgba(27,67,50,0.20) !important;
 }
 
-/* ── Secondary buttons ── */
 .stButton > button[kind="secondary"] {
     background: #FFFFFF !important;
-    border: 1.5px solid #DBDBDB !important;
-    border-radius: 10px !important;
-    color: #1a1a1a !important;
+    border: 1.5px solid #DEE2E6 !important;
+    border-radius: 8px !important;
+    color: #212529 !important;
     font-weight: 600 !important;
     font-family: 'Heebo', sans-serif !important;
     transition: opacity 0.18s ease !important;
 }
 .stButton > button[kind="secondary"]:hover { opacity: 0.70 !important; }
 
-/* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
     gap: 0;
     background: transparent;
-    border-bottom: 1px solid #DBDBDB;
+    border-bottom: 1px solid #DEE2E6;
 }
 .stTabs [data-baseweb="tab"] {
     padding: 10px 18px !important;
     font-weight: 600 !important;
     font-family: 'Heebo', sans-serif !important;
-    color: #8e8e8e !important;
+    color: #6c757d !important;
     border-bottom: 2px solid transparent !important;
     background: transparent !important;
     border-radius: 0 !important;
 }
 .stTabs [aria-selected="true"] {
-    color: #1a1a1a !important;
-    border-bottom: 2px solid #1a1a1a !important;
+    color: #1B4332 !important;
+    border-bottom: 2px solid #1B4332 !important;
     background: transparent !important;
 }
 
-/* ── Feed post card ── */
 .feed-card {
     background: #FFFFFF;
-    border: 1px solid #DBDBDB;
-    border-radius: 15px;
+    border: 1px solid #DEE2E6;
+    border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 14px;
     overflow: hidden;
@@ -192,39 +172,26 @@ input:focus, textarea:focus {
     text-align: right;
 }
 
-/* ── Recipe card ── */
 .recipe-card {
-    background: #F0F2F5;
-    border: none;
-    border-radius: 15px;
+    background: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 12px;
     padding: 18px 20px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     overflow: hidden;
     word-wrap: break-word;
     direction: rtl;
     text-align: right;
     transition: box-shadow 0.2s ease;
 }
-.recipe-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+.recipe-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
 .recipe-card b { font-weight: 700; }
 
-/* ── Donut row ── */
-.donut-row {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    margin-bottom: 12px;
-}
-
-/* ── Community card ── */
 .community-card {
-    background: #FFF8F7;
-    border: 1px solid #FFD5CC;
-    border-radius: 15px;
+    background: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 12px;
     padding: 14px 18px;
     margin: 8px 0;
     overflow: hidden;
@@ -233,12 +200,11 @@ input:focus, textarea:focus {
     text-align: right;
     transition: box-shadow 0.18s ease;
 }
-.community-card:hover { box-shadow: 0 4px 12px rgba(255,112,67,0.12); }
+.community-card:hover { box-shadow: 0 4px 12px rgba(27,67,50,0.10); }
 
-/* ── Badges ── */
 .badge {
     display: inline-block;
-    background: #4CAF50;
+    background: #1B4332;
     color: #fff !important;
     border-radius: 20px;
     padding: 1px 10px;
@@ -248,118 +214,102 @@ input:focus, textarea:focus {
     vertical-align: middle;
     white-space: nowrap;
 }
-.badge-comm { background: #FF7043 !important; }
+.badge-comm { background: #D90429 !important; }
 .badge-gold { background: #F9A825 !important; }
 .stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
 
-/* ── Expanders ── */
 [data-testid="stExpander"] {
-    border-radius: 10px !important;
-    border: 1px solid #E9ECEF !important;
     background: #FFFFFF !important;
+    border: 1px solid #DEE2E6 !important;
+    border-radius: 10px !important;
     overflow: hidden !important;
 }
 [data-testid="stExpander"] summary {
     font-family: 'Heebo', sans-serif !important;
     font-weight: 600 !important;
-    color: #1a1a1a !important;
+    color: #212529 !important;
     padding: 10px 14px !important;
 }
 
-/* ── Metrics ── */
-/* ── Badges ── */
-.badge {
-    display: inline-block;
-    background: #4CAF50;
-    color: #fff !important;
-    border-radius: 20px;
-    padding: 2px 10px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    margin-right: 4px;
-    vertical-align: middle;
-    white-space: nowrap;
-}
-.badge-comm { background: #FF7043 !important; }
-.badge-gold { background: #F9A825 !important; }
-.stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
-
-/* ── Expanders ── */
-[data-testid="stExpander"] {
-    background: #F0F2F5 !important;
-    border: none !important;
-    border-radius: 15px !important;
-    overflow: hidden !important;
-}
-[data-testid="stExpander"] summary {
-    font-family: 'Heebo', sans-serif !important;
-    font-weight: 600 !important;
-    color: #1a1a1a !important;
-    padding: 10px 14px !important;
-}
-
-/* ── Metrics ── */
 [data-testid="stMetric"] {
-    background: #F0F2F5 !important;
-    border: none !important;
-    border-radius: 15px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #DEE2E6 !important;
+    border-radius: 10px !important;
     padding: 14px 16px !important;
     box-shadow: none !important;
 }
 [data-testid="stMetricValue"] {
-    color: #4CAF50 !important;
+    color: #1B4332 !important;
     font-weight: 700 !important;
     font-family: 'Heebo', sans-serif !important;
 }
 [data-testid="stMetricLabel"] {
-    color: #8e8e8e !important;
+    color: #6c757d !important;
     font-family: 'Heebo', sans-serif !important;
 }
 
-/* ── Tables ── */
 table {
     background: #FFFFFF !important;
-    color: #1a1a1a !important;
+    color: #212529 !important;
     width: 100% !important;
-    border-radius: 15px !important;
+    border-radius: 12px !important;
     overflow: hidden !important;
     border-collapse: collapse !important;
 }
 th {
-    background: #F0F2F5 !important;
-    color: #1a1a1a !important;
+    background: #F8F9FA !important;
+    color: #212529 !important;
     padding: 10px 16px !important;
     font-family: 'Heebo', sans-serif !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
-    border-bottom: 2px solid #DBDBDB !important;
+    border-bottom: 2px solid #DEE2E6 !important;
 }
 td {
     padding: 9px 16px !important;
-    border-bottom: 1px solid #F0F2F5 !important;
+    border-bottom: 1px solid #F8F9FA !important;
     vertical-align: top !important;
 }
 
-/* ── Thin dividers ── */
 hr {
     border: none !important;
-    border-top: 1px solid #DBDBDB !important;
+    border-top: 1px solid #DEE2E6 !important;
     margin: 14px 0 !important;
 }
 
-/* ── Alerts ── */
 [data-testid="stAlert"] {
-    background: #F0F2F5 !important;
-    border-radius: 12px !important;
+    background: #FFFFFF !important;
+    border-radius: 10px !important;
     border: none !important;
-    border-right: 3px solid #4CAF50 !important;
-    color: #1a1a1a !important;
+    border-right: 3px solid #1B4332 !important;
+    color: #212529 !important;
     padding: 12px 16px !important;
 }
 
-/* ── Captions ── */
 [data-testid="stCaptionContainer"],
-.stCaption { color: #8e8e8e !important; font-size: 0.83rem !important; }
+.stCaption { color: #6c757d !important; font-size: 0.83rem !important; }
+
+.auth-container {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.auth-logo {
+    text-align: center;
+    padding: 1.5rem 0 1rem;
+}
+
+.auth-logo h1 {
+    font-size: 2rem !important;
+    color: #1B4332 !important;
+    margin-bottom: 4px;
+}
+
+.auth-logo p {
+    color: #6c757d !important;
+    font-size: 1rem !important;
+}
 """
     st.markdown("<style>" + css + "</style>", unsafe_allow_html=True)
 
@@ -411,7 +361,7 @@ def _donut(value: int, total: int, label: str, color: str, unit: str = "") -> go
     fig.add_annotation(
         text=f"<b>{value}</b><br><sub>{unit}</sub>",
         x=0.5, y=0.5,
-        font=dict(size=15, color="#1a1a1a", family="Heebo"),
+        font=dict(size=15, color="#212529", family="Heebo"),
         showarrow=False,
     )
     fig.update_layout(
@@ -447,14 +397,13 @@ def _go_back():
 
 
 def _logout():
-    if _COOKIES_OK and _cookies:
-        token = _cookies.get("nutrition_token")
-        if token:
-            try:
-                db.delete_remember_token(token)
-                _cookies.remove("nutrition_token")
-            except Exception:
-                pass
+    try:
+        if "token" in st.query_params:
+            token = st.query_params["token"]
+            db.delete_remember_token(token)
+            st.query_params.clear()
+    except Exception:
+        pass
     for k in ("uid", "username"):
         st.session_state[k] = None
     st.session_state.page = "auth"
@@ -467,8 +416,8 @@ def _render_sidebar(uid, u):
     username = st.session_state.get("username") or db.get_username_by_phone(uid)
     with st.sidebar:
         st.markdown(
-            f"<div style='font-size:1.1rem;font-weight:900;color:#4CAF50;margin-bottom:2px'>"
-            f"שלום, {username}! 👋</div>",
+            f"<div style='font-size:1.05rem;font-weight:700;color:#1B4332;margin-bottom:2px;padding:4px 0'>"
+            f"שלום, {username}</div>",
             unsafe_allow_html=True,
         )
         goal_map = {"bulk": "הגדלת מסה", "cut": "ירידה", "maintain": "שמירה"}
@@ -484,7 +433,7 @@ def _render_sidebar(uid, u):
         if u.get("water_date") != today_str:
             water = 0
         st.write(f"**מים:** {water}/8 כוסות")
-        st.write("🔵" * min(water, 8) + "⚪" * max(8 - water, 0))
+        st.write("●" * min(water, 8) + "○" * max(8 - water, 0))
         if st.button("+ כוס מים", use_container_width=True, key="sidebar_water"):
             db.add_water_cup(uid)
             st.rerun()
@@ -507,78 +456,106 @@ def _render_sidebar(uid, u):
 
 
 def show_auth():
-    if _COOKIES_OK and _cookies:
-        try:
-            token = _cookies.get("nutrition_token")
-            if token:
-                phone = db.verify_remember_token(token)
-                if phone:
-                    username = db.get_username_by_phone(phone)
-                    st.session_state.uid = phone
-                    st.session_state.username = username
-                    st.session_state.page = "main"
-                    st.rerun()
-        except Exception:
-            pass
+    try:
+        token = st.query_params.get("token")
+        if token:
+            phone = db.verify_remember_token(token)
+            if phone:
+                username = db.get_username_by_phone(phone)
+                st.session_state.uid = phone
+                st.session_state.username = username
+                st.session_state.page = "main"
+                st.rerun()
+    except Exception:
+        pass
 
     _, center, _ = st.columns([1, 2, 1])
     with center:
-        st.markdown(
-            "<h1 style='text-align:center;color:#4CAF50;font-size:2.4rem;'>🥗 תזונה חכמה</h1>"
-            "<p style='text-align:center;color:#6c757d;font-size:1.05rem;'>רשת חברתית לתזונה בריאה</p>",
-            unsafe_allow_html=True,
-        )
-        st.markdown("---")
+        with st.container():
+            st.markdown(
+                "<div class='auth-logo'>"
+                "<h1>תזונה חכמה</h1>"
+                "<p>רשת חברתית לתזונה בריאה</p>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("---")
 
         tab_login, tab_signup = st.tabs(["כניסה לחשבון", "הרשמה חדשה"])
 
         with tab_login:
-            with st.form("form_login"):
-                uname = st.text_input("👤 שם משתמש")
-                passwd = st.text_input("🔒 סיסמה", type="password")
-                remember = st.checkbox("זכור אותי למשך 30 יום")
-                if st.form_submit_button("כניסה", use_container_width=True, type="primary"):
-                    if not uname.strip() or not passwd:
-                        st.error("נא למלא שם משתמש וסיסמה")
-                    else:
-                        ok, result = db.authenticate(uname.strip(), passwd)
-                        if ok:
-                            st.session_state.uid = result
-                            st.session_state.username = uname.strip().lower()
-                            st.session_state.page = "main"
-                            if remember and _COOKIES_OK and _cookies:
-                                try:
-                                    token = db.create_remember_token(result)
-                                    _cookies.set("nutrition_token", token, max_age=30*24*3600)
-                                except Exception:
-                                    pass
-                            st.rerun()
+            with st.container():
+                with st.form("form_login"):
+                    st.markdown(
+                        "<div style='padding-bottom:4px;font-weight:600'>שם משתמש</div>",
+                        unsafe_allow_html=True,
+                    )
+                    uname = st.text_input("שם משתמש", label_visibility="collapsed")
+                    st.markdown(
+                        "<div style='padding-bottom:4px;font-weight:600'>סיסמה</div>",
+                        unsafe_allow_html=True,
+                    )
+                    passwd = st.text_input("סיסמה", type="password", label_visibility="collapsed")
+                    remember = st.checkbox("זכור אותי (30 יום)")
+                    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                    submitted = st.form_submit_button("כניסה", use_container_width=True, type="primary")
+                    if submitted:
+                        if not uname.strip() or not passwd:
+                            st.error("נא למלא שם משתמש וסיסמה")
                         else:
-                            st.error(result)
+                            ok, result = db.authenticate(uname.strip(), passwd)
+                            if ok:
+                                st.session_state.uid = result
+                                st.session_state.username = uname.strip().lower()
+                                st.session_state.page = "main"
+                                if remember:
+                                    try:
+                                        token = db.create_remember_token(result)
+                                        st.query_params["token"] = token
+                                    except Exception:
+                                        pass
+                                st.rerun()
+                            else:
+                                st.error(result)
 
         with tab_signup:
-            with st.form("form_signup"):
-                new_uname = st.text_input("👤 שם משתמש (לפחות 3 תווים)")
-                new_pass  = st.text_input("🔒 סיסמה (לפחות 6 תווים)", type="password")
-                new_pass2 = st.text_input("🔒 אימות סיסמה", type="password")
-                if st.form_submit_button("הרשמה", use_container_width=True, type="primary"):
-                    if len(new_uname.strip()) < 3:
-                        st.error("שם משתמש חייב להכיל לפחות 3 תווים")
-                    elif len(new_pass) < 6:
-                        st.error("סיסמה חייבת להכיל לפחות 6 תווים")
-                    elif new_pass != new_pass2:
-                        st.error("הסיסמאות אינן תואמות")
-                    else:
-                        ok, result = db.create_account(new_uname.strip(), new_pass)
-                        if ok:
-                            st.session_state.uid = result
-                            st.session_state.username = new_uname.strip().lower()
-                            st.session_state.page = "profile_setup"
-                            st.session_state.step = 1
-                            st.session_state.reg = {}
-                            st.rerun()
+            with st.container():
+                with st.form("form_signup"):
+                    st.markdown(
+                        "<div style='padding-bottom:4px;font-weight:600'>שם משתמש (לפחות 3 תווים)</div>",
+                        unsafe_allow_html=True,
+                    )
+                    new_uname = st.text_input("שם משתמש", label_visibility="collapsed")
+                    st.markdown(
+                        "<div style='padding-bottom:4px;font-weight:600'>סיסמה (לפחות 6 תווים)</div>",
+                        unsafe_allow_html=True,
+                    )
+                    new_pass = st.text_input("סיסמה", type="password", label_visibility="collapsed")
+                    st.markdown(
+                        "<div style='padding-bottom:4px;font-weight:600'>אימות סיסמה</div>",
+                        unsafe_allow_html=True,
+                    )
+                    new_pass2 = st.text_input("אימות סיסמה", type="password", label_visibility="collapsed")
+                    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                    submitted2 = st.form_submit_button("הרשמה", use_container_width=True, type="primary")
+                    if submitted2:
+                        if len(new_uname.strip()) < 3:
+                            st.error("שם משתמש חייב להכיל לפחות 3 תווים")
+                        elif len(new_pass) < 6:
+                            st.error("סיסמה חייבת להכיל לפחות 6 תווים")
+                        elif new_pass != new_pass2:
+                            st.error("הסיסמאות אינן תואמות")
                         else:
-                            st.error(result)
+                            ok, result = db.create_account(new_uname.strip(), new_pass)
+                            if ok:
+                                st.session_state.uid = result
+                                st.session_state.username = new_uname.strip().lower()
+                                st.session_state.page = "profile_setup"
+                                st.session_state.step = 1
+                                st.session_state.reg = {}
+                                st.rerun()
+                            else:
+                                st.error(result)
 
 
 def _pstep1():
@@ -720,7 +697,7 @@ def _pstep4(uid):
 
 def show_profile_setup(uid):
     st.markdown(
-        "<h1 style='color:#4CAF50'>הגדרת פרופיל תזונה</h1>",
+        "<h1 style='color:#1B4332'>הגדרת פרופיל תזונה</h1>",
         unsafe_allow_html=True,
     )
     st.progress(st.session_state.step / 4, text=f"שלב {st.session_state.step} מתוך 4")
@@ -734,13 +711,13 @@ def show_profile_setup(uid):
 def show_dashboard(uid, u):
     target_cal = int(_target(u))
     tab_menu, tab_shop, tab_progress, tab_profile_edit = st.tabs([
-        "🍽️ תפריט יומי", "🛒 רשימת קניות", "📈 התקדמות", "👤 עריכת פרופיל"
+        "תפריט יומי", "רשימת קניות", "התקדמות", "עריכת פרופיל"
     ])
 
     with tab_menu:
         name_disp = u.get("name", "").split()[0] if u.get("name") else ""
         st.markdown(
-            f"<h2 style='color:#4CAF50;margin-bottom:4px;'>שלום, {name_disp}! 👋</h2>",
+            f"<h2 style='color:#1B4332;margin-bottom:4px;'>שלום, {name_disp}</h2>",
             unsafe_allow_html=True,
         )
 
@@ -762,153 +739,152 @@ def show_dashboard(uid, u):
                 est_carb += r.get("carb", 0)
                 est_fat  += r.get("fat",  0)
 
-        # Compact horizontal donut row
         dc1, dc2, dc3, dc4 = st.columns([1, 1, 1, 1])
         dc1.plotly_chart(
-            _donut(consumed,  target_cal, "🔥 קלוריות", "#4CAF50", f"/{target_cal}"),
+            _donut(consumed,  target_cal, "קלוריות",  "#1B4332", f"/{target_cal}"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc2.plotly_chart(
-            _donut(est_pro,   goal_pro,   "💪 חלבון",   "#FF7043", "g"),
+            _donut(est_pro,   goal_pro,   "חלבון",    "#D90429", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc3.plotly_chart(
-            _donut(est_carb,  goal_carb,  "🌾 פחמימות", "#F9A825", "g"),
+            _donut(est_carb,  goal_carb,  "פחמימות",  "#F9A825", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc4.plotly_chart(
-            _donut(est_fat,   goal_fat,   "🥑 שומן",    "#8e24aa", "g"),
+            _donut(est_fat,   goal_fat,   "שומן",     "#6c757d", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
 
         st.progress(pct)
         if pct >= 1.0:
-            st.success("🎯 הגעת ליעד היומי!")
+            st.success("הגעת ליעד היומי!")
         else:
             st.info(f"נותר: {remaining} קל' ליעד")
 
         if u.get("goal") == "bulk" and u.get("commitment_label") == "קיצוני ⚡":
-            st.warning("⚡ מצב קיצוני פעיל - עודף של 2100 קל' ביום")
+            st.warning("מצב קיצוני פעיל - עודף של 2100 קל' ביום")
 
         st.markdown("---")
 
         for cat, lbl in [("breakfast", "ארוחת בוקר"),
                           ("lunch",    "ארוחת צהריים"),
                           ("dinner",   "ארוחת ערב")]:
-            cat_icon = {"breakfast": "🌅", "lunch": "☀️", "dinner": "🌙"}[cat]
-            st.markdown(f"### {cat_icon} {lbl}")
+            with st.container():
+                st.markdown(f"### {lbl}")
 
-            web_r = _safe_web(cat)
-            keys  = _sorted_keys(cat, u)
-            idx   = int(st.session_state[f"swap_{cat}"]) % len(keys)
-            current = web_r if web_r else RECIPES.get(keys[idx])
+                web_r = _safe_web(cat)
+                keys  = _sorted_keys(cat, u)
+                idx   = int(st.session_state[f"swap_{cat}"]) % len(keys)
+                current = web_r if web_r else RECIPES.get(keys[idx])
 
-            if not current:
-                st.info("טוען מתכון...")
+                if not current:
+                    st.info("טוען מתכון...")
+                    st.markdown("---")
+                    continue
+
+                st.markdown(
+                    f'<div class="recipe-card">'
+                    f'<b style="font-size:1.05rem">{current.get("name","---")}</b><br>'
+                    f'<span style="color:#D90429;font-weight:700">{current.get("cal",0)} קל\'</span>'
+                    f'&nbsp;&nbsp;'
+                    f'חלבון {current.get("pro",0)}g'
+                    f'&nbsp;·&nbsp;'
+                    f'פחמימות {current.get("carb",0)}g'
+                    f'&nbsp;·&nbsp;'
+                    f'שומן {current.get("fat",0)}g'
+                    f'&nbsp;·&nbsp;'
+                    f'{current.get("prep","---")}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                ings = current.get("ingredients") or []
+                if ings:
+                    st.caption("מרכיבים: " + " · ".join(str(i) for i in ings[:5]))
+
+                b1, b2, b3, b4 = st.columns(4)
+
+                if b1.button("אכלתי", key=f"ate_{cat}"):
+                    cal = int(current.get("cal", 0))
+                    db.add_daily_calories(uid, cal)
+                    db.log_meal(uid, keys[idx] if not web_r else "web",
+                                str(current.get("name", "")),
+                                str(current.get("type", "pareve")), cat, cal)
+                    if current.get("type") == "meat":
+                        db.update_user(uid, last_meat_ts=datetime.utcnow().isoformat())
+                    st.toast(f"{current.get('name','')} - {cal} קל'")
+                    st.rerun()
+
+                if b2.button("החלף", key=f"swap_{cat}_btn"):
+                    st.session_state[f"web_{cat}"] = None
+                    st.session_state[f"swap_{cat}"] = (idx + 1) % len(keys)
+                    st.rerun()
+
+                if b3.button("מהרשת", key=f"web_{cat}_btn"):
+                    off = int(st.session_state.get(f"web_off_{cat}", 0))
+                    with st.spinner("מחפש מתכון..."):
+                        fetched = fetch_web_recipe(cat, u, off)
+                    if fetched and isinstance(fetched, dict):
+                        st.session_state[f"web_{cat}"] = fetched
+                        st.session_state[f"web_off_{cat}"] = off + 1
+                    else:
+                        st.warning("לא נמצא מתכון, נסה שוב.")
+                    st.rerun()
+
+                if web_r and b4.button("מקומי", key=f"local_{cat}"):
+                    st.session_state[f"web_{cat}"] = None
+                    st.rerun()
+
+                with st.expander("פרטים מלאים — מרכיבים והוראות", expanded=False):
+                    ings_full = current.get("ingredients") or []
+                    if ings_full:
+                        st.markdown("**מרכיבים:**")
+                        for ing in ings_full:
+                            st.write(f"- {ing}")
+                    steps_full = current.get("steps") or []
+                    if steps_full:
+                        st.markdown("**הוראות הכנה:**")
+                        for step in steps_full:
+                            st.write(step)
+                    if not ings_full and not steps_full:
+                        st.info("אין פרטים נוספים למתכון זה")
+
+                top_recs = db.get_top_community_recipes(category=cat, limit=3)
+                if top_recs:
+                    with st.expander(f"המלצות קהילה עבור {lbl}", expanded=False):
+                        st.caption("ממוינות לפי דירוג גבוה ביותר")
+                        for i, rec in enumerate(top_recs):
+                            likes  = rec.get("likes_count", 0)
+                            stars  = _stars(likes)
+                            medal  = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
+                            st.markdown(
+                                f'<div class="community-card">'
+                                f'{medal} <b>{rec["name"]}</b>'
+                                f'&nbsp;<span class="badge badge-comm">קהילה</span><br>'
+                                f'<span class="stars">{stars}</span>'
+                                f'&nbsp;{likes} לייקים'
+                                f'&nbsp;·&nbsp;{rec.get("calories",0)} קל\''
+                                f'&nbsp;·&nbsp;{rec.get("protein",0)}g חלבון'
+                                f'&nbsp;·&nbsp;{rec.get("username","")}'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                            if rec.get("difficulty") or rec.get("prep_time"):
+                                parts = []
+                                if rec.get("difficulty"): parts.append(f"קושי: {rec['difficulty']}")
+                                if rec.get("prep_time"):  parts.append(f"זמן: {rec['prep_time']}")
+                                st.caption(" · ".join(parts))
+                            comm_c1, comm_c2 = st.columns([1, 5])
+                            if comm_c1.button("אכלתי", key=f"comm_ate_{cat}_{rec['id']}"):
+                                db.add_daily_calories(uid, int(rec.get("calories", 0)))
+                                db.log_meal(uid, f"comm_{rec['id']}",
+                                            str(rec["name"]), "pareve", cat,
+                                            int(rec.get("calories", 0)))
+                                st.toast(f"{rec['name']} - {rec.get('calories',0)} קל'")
+                                st.rerun()
+
                 st.markdown("---")
-                continue
-
-            web_badge = (
-                "&nbsp;<span class='badge'>רשת</span>"
-                if current.get("source") in ("web", "fallback") else ""
-            )
-            st.markdown(
-                f'<div class="recipe-card">'
-                f'<b style="font-size:1.05rem">{current.get("name","---")}{web_badge}</b><br>'
-                f'🔥 <b style="color:#FF7043">{current.get("cal",0)}</b> קל\'&nbsp;|&nbsp;'
-                f'💪 {current.get("pro",0)}g חלבון&nbsp;|&nbsp;'
-                f'🍞 {current.get("carb",0)}g פחמימות&nbsp;|&nbsp;'
-                f'🥑 {current.get("fat",0)}g שומן&nbsp;|&nbsp;'
-                f'⏱ {current.get("prep","---")}'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-            ings = current.get("ingredients") or []
-            if ings:
-                st.caption("מרכיבים: " + " · ".join(str(i) for i in ings[:5]))
-
-            b1, b2, b3, b4 = st.columns(4)
-
-            if b1.button("✅ אכלתי", key=f"ate_{cat}"):
-                cal = int(current.get("cal", 0))
-                db.add_daily_calories(uid, cal)
-                db.log_meal(uid, keys[idx] if not web_r else "web",
-                            str(current.get("name", "")),
-                            str(current.get("type", "pareve")), cat, cal)
-                if current.get("type") == "meat":
-                    db.update_user(uid, last_meat_ts=datetime.utcnow().isoformat())
-                st.toast(f"{current.get('name','')} - {cal} קל'")
-                st.rerun()
-
-            if b2.button("🔄 החלף", key=f"swap_{cat}_btn"):
-                st.session_state[f"web_{cat}"] = None
-                st.session_state[f"swap_{cat}"] = (idx + 1) % len(keys)
-                st.rerun()
-
-            if b3.button("🌐 מהרשת", key=f"web_{cat}_btn"):
-                off = int(st.session_state.get(f"web_off_{cat}", 0))
-                with st.spinner("מחפש מתכון..."):
-                    fetched = fetch_web_recipe(cat, u, off)
-                if fetched and isinstance(fetched, dict):
-                    st.session_state[f"web_{cat}"] = fetched
-                    st.session_state[f"web_off_{cat}"] = off + 1
-                else:
-                    st.warning("לא נמצא מתכון, נסה שוב.")
-                st.rerun()
-
-            if web_r and b4.button("📋 מקומי", key=f"local_{cat}"):
-                st.session_state[f"web_{cat}"] = None
-                st.rerun()
-
-            with st.expander("📖 פרטים מלאים — מרכיבים והוראות", expanded=False):
-                ings_full = current.get("ingredients") or []
-                if ings_full:
-                    st.markdown("**🛒 מרכיבים:**")
-                    for ing in ings_full:
-                        st.write(f"- {ing}")
-                steps_full = current.get("steps") or []
-                if steps_full:
-                    st.markdown("**👨‍🍳 הוראות הכנה:**")
-                    for step in steps_full:
-                        st.write(step)
-                if not ings_full and not steps_full:
-                    st.info("אין פרטים נוספים למתכון זה")
-
-            top_recs = db.get_top_community_recipes(category=cat, limit=3)
-            if top_recs:
-                with st.expander(f"⭐ המלצות קהילה עבור {lbl}", expanded=False):
-                    st.caption("ממוינות לפי דירוג גבוה ביותר")
-                    for i, rec in enumerate(top_recs):
-                        likes  = rec.get("likes_count", 0)
-                        stars  = _stars(likes)
-                        medal  = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
-                        st.markdown(
-                            f'<div class="community-card">'
-                            f'{medal} <b>{rec["name"]}</b>'
-                            f'&nbsp;<span class="badge badge-comm">קהילה</span><br>'
-                            f'<span class="stars">{stars}</span>'
-                            f'&nbsp;{likes} לייקים'
-                            f'&nbsp;·&nbsp; 🔥 {rec.get("calories",0)} קל\''
-                            f'&nbsp;·&nbsp; 💪 {rec.get("protein",0)}g'
-                            f'&nbsp;·&nbsp; ✍️ {rec.get("username","")}'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                        if rec.get("difficulty") or rec.get("prep_time"):
-                            parts = []
-                            if rec.get("difficulty"): parts.append(f"קושי: {rec['difficulty']}")
-                            if rec.get("prep_time"):  parts.append(f"⏱ {rec['prep_time']}")
-                            st.caption(" · ".join(parts))
-                        comm_c1, comm_c2 = st.columns([1, 5])
-                        if comm_c1.button("✅ אכלתי", key=f"comm_ate_{cat}_{rec['id']}"):
-                            db.add_daily_calories(uid, int(rec.get("calories", 0)))
-                            db.log_meal(uid, f"comm_{rec['id']}",
-                                        str(rec["name"]), "pareve", cat,
-                                        int(rec.get("calories", 0)))
-                            st.toast(f"{rec['name']} - {rec.get('calories',0)} קל'")
-                            st.rerun()
-
-            st.markdown("---")
 
         logs = db.get_today_logs(uid)
         if logs:
@@ -1029,7 +1005,7 @@ def show_dashboard(uid, u):
 
 def show_community(uid, u):
     username = st.session_state.get("username") or db.get_username_by_phone(uid)
-    tab_feed, tab_recipes = st.tabs(["📢 פיד קהילתי", "🍳 מתכוני קהילה"])
+    tab_feed, tab_recipes = st.tabs(["פיד קהילתי", "מתכוני קהילה"])
 
     with tab_feed:
         st.markdown("<h2>פיד קהילתי</h2>", unsafe_allow_html=True)
@@ -1052,21 +1028,21 @@ def show_community(uid, u):
                 st.markdown(
                     f'<div class="feed-card">'
                     f'<div style="font-weight:700;font-size:.95rem">{post["username"]}'
-                    f'<span style="color:#8e8e8e;font-weight:400;font-size:.82rem;margin-right:8px">· {posted_date}</span>'
+                    f'<span style="color:#6c757d;font-weight:400;font-size:.82rem;margin-right:8px">· {posted_date}</span>'
                     f'</div>'
                     f'<div style="margin-top:6px;line-height:1.6">{post["content"]}</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
                 if post["phone"] == uid:
-                    if st.button("🗑 מחק", key=f"del_post_{post['id']}", help="מחק פוסט"):
+                    if st.button("מחק", key=f"del_post_{post['id']}", help="מחק פוסט"):
                         db.delete_feed_post(post["id"], uid)
                         st.rerun()
 
     with tab_recipes:
         st.markdown("<h2>מתכוני קהילה</h2>", unsafe_allow_html=True)
 
-        with st.expander("➕ שתף מתכון חדש", expanded=False):
+        with st.expander("שתף מתכון חדש", expanded=False):
             st.write("#### חישוב תזונה אוטומטי")
             auto_ings = st.text_area(
                 "הזן מרכיבים לחישוב אוטומטי",
@@ -1150,10 +1126,10 @@ def show_community(uid, u):
                 f'<div class="recipe-card">'
                 f'<b style="font-size:1.05rem">{rec["name"]}</b>'
                 f'&nbsp;<span class="badge badge-comm">קהילה · {cat_heb}</span><br>'
-                f'🔥 <b style="color:#FF7043">{rec.get("calories",0)}</b> קל\'&nbsp;|&nbsp;'
-                f'💪 {rec.get("protein",0)}g&nbsp;|&nbsp;'
-                f'🍞 {rec.get("carbs",0)}g&nbsp;|&nbsp;'
-                f'🥑 {rec.get("fat",0)}g'
+                f'<span style="color:#D90429;font-weight:700">{rec.get("calories",0)} קל\'</span>'
+                f'&nbsp;·&nbsp;חלבון {rec.get("protein",0)}g'
+                f'&nbsp;·&nbsp;פחמימות {rec.get("carbs",0)}g'
+                f'&nbsp;·&nbsp;שומן {rec.get("fat",0)}g'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -1173,14 +1149,14 @@ def show_community(uid, u):
                 st.write(rec["description"])
 
             if rec.get("ingredients"):
-                with st.expander("🛒 מרכיבים"):
+                with st.expander("מרכיבים"):
                     for line in rec["ingredients"].split("\n"):
                         if line.strip():
                             st.write(f"- {line.strip()}")
 
             has_details = any([rec.get("instructions"), rec.get("prep_time"), rec.get("difficulty")])
             if has_details:
-                with st.expander("📋 פרטים נוספים"):
+                with st.expander("פרטים נוספים"):
                     if rec.get("difficulty") or rec.get("prep_time"):
                         dc1, dc2 = st.columns(2)
                         if rec.get("difficulty"): dc1.metric("רמת קושי", rec["difficulty"])
@@ -1197,8 +1173,8 @@ def show_community(uid, u):
 
             btn_c1, btn_c2, _ = st.columns([1, 1, 4])
             rid = rec["id"]
-            like_label = f"❤️ {rec['likes_count']}" if rid in liked_ids else f"🤍 {rec['likes_count']}"
-            save_label = "🔖 שמור" if rid in saved_ids else "📌 שמור"
+            like_label = f"❤️ {rec['likes_count']}" if rid in liked_ids else f"♡ {rec['likes_count']}"
+            save_label = "שמור" if rid not in saved_ids else "נשמר"
             if btn_c1.button(like_label, key=f"like_{rid}"):
                 db.toggle_like(rid, uid)
                 st.rerun()
@@ -1244,7 +1220,7 @@ def show_profile_page(uid, u):
                 st.write(f"{posted_date}")
                 st.write(post["content"])
             with c2:
-                if st.button("🗑", key=f"profile_del_{post['id']}", help="מחק"):
+                if st.button("מחק", key=f"profile_del_{post['id']}", help="מחק"):
                     db.delete_feed_post(post["id"], uid)
                     st.rerun()
             st.markdown("---")
