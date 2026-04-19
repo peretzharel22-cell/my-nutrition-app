@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""app.py - Social Nutrition Network (Streamlit)"""
+"""app.py - Social Nutrition Network — Minimalist Premium (main entry point)"""
 
 import streamlit as st
 import pandas as pd
@@ -13,7 +13,6 @@ from handler import (
     fetch_web_recipe, estimate_nutrition,
 )
 
-# --- Cookie manager (Remember Me) ---
 try:
     from streamlit_cookies_controller import CookieController
     _cookies = CookieController()
@@ -22,164 +21,353 @@ except Exception:
     _cookies = None
     _COOKIES_OK = False
 
-# =============================================================================
-# Page config + CSS
-# =============================================================================
 st.set_page_config(page_title="תזונה חכמה", page_icon="🥗", layout="wide")
 
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
 
-    /* ── Global font + RTL ── */
-    html, body, [class*="css"], .stApp {
-        font-family: 'Assistant', sans-serif !important;
-        direction: RTL !important;
-        text-align: right !important;
-        background: #f4fdf6 !important;
-        color: #2d3748 !important;
-    }
-    .main .block-container { direction: RTL !important; text-align: right !important; padding-top: 1.5rem; }
-    [data-testid="stMarkdownContainer"],
-    [data-testid="stText"], label, p, h1, h2, h3, h4, h5, span {
-        direction: RTL !important; text-align: right !important;
-        font-family: 'Assistant', sans-serif !important;
-    }
-    input, textarea, select { direction: RTL !important; text-align: right !important; }
+def inject_css() -> None:
+    """Inject all custom CSS. Nothing is printed to the screen."""
+    css = """
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
 
-    /* ── Sidebar — Glassmorphism ── */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(160deg,#0b3320 0%,#1a5c2e 50%,#2d7a45 100%) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border-left: 1px solid rgba(255,255,255,0.12) !important;
-    }
-    [data-testid="stSidebar"] * { color: #e8f5e9 !important; font-family: 'Assistant', sans-serif !important; }
-    [data-testid="stSidebar"] button {
-        background: rgba(255,255,255,0.12) !important;
-        border: 1px solid rgba(255,255,255,0.25) !important;
-        border-radius: 12px !important;
-        margin-bottom: 6px !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        transition: all 0.22s ease !important;
-        backdrop-filter: blur(4px) !important;
-    }
-    [data-testid="stSidebar"] button:hover {
-        background: rgba(255,255,255,0.26) !important;
-        transform: translateX(-3px) !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.18) !important;
-    }
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
 
-    /* ── Progress bar ── */
-    .stProgress > div > div {
-        background: linear-gradient(90deg,#43a047,#66bb6a,#a5d6a7) !important;
-        border-radius: 20px !important;
-    }
+/* ── Page background: pure white, Instagram-style ── */
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"],
+section[data-testid="stMain"],
+[data-testid="block-container"] {
+    background-color: #FFFFFF !important;
+    color: #1a1a1a !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    direction: rtl;
+    text-align: right;
+}
 
-    /* ── Forms — Glassmorphism cards ── */
-    div[data-testid="stForm"] {
-        background: rgba(255,255,255,0.72) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(76,175,133,0.22) !important;
-        border-radius: 20px !important;
-        padding: 22px !important;
-        box-shadow: 0 4px 24px rgba(45,122,69,0.08) !important;
-    }
+.main .block-container {
+    direction: rtl !important;
+    text-align: right !important;
+    padding-top: 1.5rem;
+    max-width: 1080px;
+}
 
-    /* ── Recipe card (local) ── */
-    .recipe-card {
-        background: rgba(255,255,255,0.85);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(76,175,133,0.3);
-        border-radius: 20px;
-        padding: 18px 22px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 18px rgba(45,122,69,0.09);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .recipe-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(45,122,69,0.16);
-    }
+/* ── Typography ── */
+[data-testid="stMarkdownContainer"],
+[data-testid="stText"],
+label, p, span {
+    direction: rtl !important;
+    text-align: right !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    color: #1a1a1a !important;
+}
 
-    /* ── Community card ── */
-    .community-card {
-        background: rgba(255,253,240,0.9);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,213,79,0.5);
-        border-radius: 16px;
-        padding: 14px 18px;
-        margin: 8px 0;
-        box-shadow: 0 3px 12px rgba(255,193,7,0.10);
-        transition: transform 0.18s ease;
-    }
-    .community-card:hover { transform: translateY(-2px); }
+h1, h2, h3, h4, h5 {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    line-height: 1.3 !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
 
-    /* ── Badges ── */
-    .stars { color: #f5a623; font-size: 1.05rem; letter-spacing: 1px; }
-    .badge {
-        display: inline-block;
-        background: linear-gradient(135deg,#2d7a45,#43a047);
-        color: white !important;
-        border-radius: 20px;
-        padding: 2px 11px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        margin-left: 6px;
-        letter-spacing: 0.3px;
-    }
-    .badge-gold  { background: linear-gradient(135deg,#e6a800,#f5c518) !important; }
-    .badge-comm  { background: linear-gradient(135deg,#1565c0,#1976d2) !important; }
+/* ── Sidebar ── */
+[data-testid="stSidebar"] {
+    background: #FFFFFF !important;
+    border-left: 1px solid #DBDBDB !important;
+}
+[data-testid="stSidebar"] * {
+    color: #1a1a1a !important;
+    font-family: 'Heebo', sans-serif !important;
+}
+[data-testid="stSidebar"] button {
+    background: #4CAF50 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    margin-bottom: 5px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    color: #fff !important;
+    width: 100% !important;
+    transition: opacity 0.18s ease !important;
+}
+[data-testid="stSidebar"] button:hover { opacity: 0.80 !important; }
 
-    /* ── Tabs ── */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 6px; background: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 12px 12px 0 0 !important;
-        padding: 8px 18px !important;
-        font-weight: 700 !important;
-        font-family: 'Assistant', sans-serif !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #2d7a45 !important;
-        color: white !important;
-    }
+/* ── Progress bar ── */
+.stProgress > div > div { background: #4CAF50 !important; border-radius: 4px !important; }
+.stProgress > div        { background: #EFEFEF !important; border-radius: 4px !important; }
 
-    /* ── Primary buttons ── */
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg,#2d7a45,#43a047) !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 700 !important;
-        font-family: 'Assistant', sans-serif !important;
-        transition: all 0.2s ease !important;
-    }
-    .stButton > button[kind="primary"]:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 6px 20px rgba(45,122,69,0.3) !important;
-    }
+/* ── Forms ── */
+div[data-testid="stForm"] {
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    padding: 22px !important;
+    box-shadow: none !important;
+}
 
-    /* ── Expanders ── */
-    [data-testid="stExpander"] {
-        border-radius: 14px !important;
-        border: 1px solid rgba(76,175,133,0.25) !important;
-        background: rgba(255,255,255,0.7) !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+/* ── Inputs ── */
+input, textarea, select,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
+    direction: rtl !important;
+    text-align: right !important;
+    background: #FFFFFF !important;
+    color: #1a1a1a !important;
+    border: 1px solid #DBDBDB !important;
+    border-radius: 10px !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    transition: border-color 0.15s ease !important;
+}
+input:focus, textarea:focus {
+    border-color: #4CAF50 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.10) !important;
+}
+
+/* ── Primary buttons ── */
+.stButton > button[kind="primary"],
+[data-testid="stFormSubmitButton"] > button {
+    background: #4CAF50 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-family: 'Heebo', sans-serif !important;
+    color: #fff !important;
+    letter-spacing: 0.3px !important;
+    transition: opacity 0.18s ease !important;
+}
+.stButton > button[kind="primary"]:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
+    opacity: 0.82 !important;
+    box-shadow: 0 4px 14px rgba(76,175,80,0.25) !important;
+}
+
+/* ── Secondary buttons ── */
+.stButton > button[kind="secondary"] {
+    background: #FFFFFF !important;
+    border: 1.5px solid #DBDBDB !important;
+    border-radius: 10px !important;
+    color: #1a1a1a !important;
+    font-weight: 600 !important;
+    font-family: 'Heebo', sans-serif !important;
+    transition: opacity 0.18s ease !important;
+}
+.stButton > button[kind="secondary"]:hover { opacity: 0.70 !important; }
+
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0;
+    background: transparent;
+    border-bottom: 1px solid #DBDBDB;
+}
+.stTabs [data-baseweb="tab"] {
+    padding: 10px 18px !important;
+    font-weight: 600 !important;
+    font-family: 'Heebo', sans-serif !important;
+    color: #8e8e8e !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #1a1a1a !important;
+    border-bottom: 2px solid #1a1a1a !important;
+    background: transparent !important;
+}
+
+/* ── Feed post card ── */
+.feed-card {
+    background: #FFFFFF;
+    border: 1px solid #DBDBDB;
+    border-radius: 15px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    word-wrap: break-word;
+    direction: rtl;
+    text-align: right;
+}
+
+/* ── Recipe card ── */
+.recipe-card {
+    background: #F0F2F5;
+    border: none;
+    border-radius: 15px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    word-wrap: break-word;
+    direction: rtl;
+    text-align: right;
+    transition: box-shadow 0.2s ease;
+}
+.recipe-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+.recipe-card b { font-weight: 700; }
+
+/* ── Donut row ── */
+.donut-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    margin-bottom: 12px;
+}
+
+/* ── Community card ── */
+.community-card {
+    background: #FFF8F7;
+    border: 1px solid #FFD5CC;
+    border-radius: 15px;
+    padding: 14px 18px;
+    margin: 8px 0;
+    overflow: hidden;
+    word-wrap: break-word;
+    direction: rtl;
+    text-align: right;
+    transition: box-shadow 0.18s ease;
+}
+.community-card:hover { box-shadow: 0 4px 12px rgba(255,112,67,0.12); }
+
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    background: #4CAF50;
+    color: #fff !important;
+    border-radius: 20px;
+    padding: 1px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-right: 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.badge-comm { background: #FF7043 !important; }
+.badge-gold { background: #F9A825 !important; }
+.stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
+
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    border-radius: 10px !important;
+    border: 1px solid #E9ECEF !important;
+    background: #FFFFFF !important;
+    overflow: hidden !important;
+}
+[data-testid="stExpander"] summary {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    padding: 10px 14px !important;
+}
+
+/* ── Metrics ── */
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    background: #4CAF50;
+    color: #fff !important;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-right: 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.badge-comm { background: #FF7043 !important; }
+.badge-gold { background: #F9A825 !important; }
+.stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
+
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+}
+[data-testid="stExpander"] summary {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    padding: 10px 14px !important;
+}
+
+/* ── Metrics ── */
+[data-testid="stMetric"] {
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    padding: 14px 16px !important;
+    box-shadow: none !important;
+}
+[data-testid="stMetricValue"] {
+    color: #4CAF50 !important;
+    font-weight: 700 !important;
+    font-family: 'Heebo', sans-serif !important;
+}
+[data-testid="stMetricLabel"] {
+    color: #8e8e8e !important;
+    font-family: 'Heebo', sans-serif !important;
+}
+
+/* ── Tables ── */
+table {
+    background: #FFFFFF !important;
+    color: #1a1a1a !important;
+    width: 100% !important;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+    border-collapse: collapse !important;
+}
+th {
+    background: #F0F2F5 !important;
+    color: #1a1a1a !important;
+    padding: 10px 16px !important;
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    border-bottom: 2px solid #DBDBDB !important;
+}
+td {
+    padding: 9px 16px !important;
+    border-bottom: 1px solid #F0F2F5 !important;
+    vertical-align: top !important;
+}
+
+/* ── Thin dividers ── */
+hr {
+    border: none !important;
+    border-top: 1px solid #DBDBDB !important;
+    margin: 14px 0 !important;
+}
+
+/* ── Alerts ── */
+[data-testid="stAlert"] {
+    background: #F0F2F5 !important;
+    border-radius: 12px !important;
+    border: none !important;
+    border-right: 3px solid #4CAF50 !important;
+    color: #1a1a1a !important;
+    padding: 12px 16px !important;
+}
+
+/* ── Captions ── */
+[data-testid="stCaptionContainer"],
+.stCaption { color: #8e8e8e !important; font-size: 0.83rem !important; }
+"""
+    st.markdown("<style>" + css + "</style>", unsafe_allow_html=True)
+
+
+inject_css()
 
 db.init_db()
 
-# =============================================================================
-# Session state
-# =============================================================================
 _DEFAULTS = [
     ("uid",      None),
     ("username", None),
@@ -198,13 +386,8 @@ for _cat in ("breakfast", "lunch", "dinner"):
             st.session_state[_key] = _def
 
 
-# =============================================================================
-# Shared helpers
-# =============================================================================
-
 def _stars(likes: int) -> str:
-    """Convert like count to a star rating string (1-5 stars)."""
-    if likes >= 50: n = 5
+    if likes >= 50:   n = 5
     elif likes >= 20: n = 4
     elif likes >= 10: n = 3
     elif likes >= 3:  n = 2
@@ -214,13 +397,12 @@ def _stars(likes: int) -> str:
 
 
 def _donut(value: int, total: int, label: str, color: str, unit: str = "") -> go.Figure:
-    """Circular progress donut chart for calories/macros."""
     pct = min(value / total, 1.0) if total > 0 else 0.0
     remaining = max(total - value, 0)
     fig = go.Figure(go.Pie(
         values=[max(value, 1), max(remaining, 0)],
         hole=0.72,
-        marker=dict(colors=[color, "#e8f5e9"], line=dict(width=0)),
+        marker=dict(colors=[color, "#E9ECEF"], line=dict(width=0)),
         textinfo="none",
         hoverinfo="skip",
         direction="clockwise",
@@ -229,11 +411,11 @@ def _donut(value: int, total: int, label: str, color: str, unit: str = "") -> go
     fig.add_annotation(
         text=f"<b>{value}</b><br><sub>{unit}</sub>",
         x=0.5, y=0.5,
-        font=dict(size=15, color="#2d3748", family="Assistant"),
+        font=dict(size=15, color="#1a1a1a", family="Heebo"),
         showarrow=False,
     )
     fig.update_layout(
-        title=dict(text=label, x=0.5, font=dict(size=13, color="#4a5568", family="Assistant")),
+        title=dict(text=label, x=0.5, font=dict(size=13, color="#6c757d", family="Heebo")),
         showlegend=False,
         margin=dict(t=30, b=5, l=5, r=5),
         height=140,
@@ -250,22 +432,6 @@ def _safe_web(cat):
     if not {"name", "cal", "pro", "carb", "fat"}.issubset(r):
         return None
     return r
-
-
-def _show_recipe_card(r):
-    """Render a recipe dict using plain st.write."""
-    tag = " (רשת)" if r.get("source") in ("web", "fallback") else ""
-    st.write(f"**{r.get('name', '---')}{tag}**")
-    st.write(
-        f"קלוריות: {r.get('cal', 0)} | "
-        f"חלבון: {r.get('pro', 0)}g | "
-        f"פחמימות: {r.get('carb', 0)}g | "
-        f"שומן: {r.get('fat', 0)}g | "
-        f"הכנה: {r.get('prep', '---')}"
-    )
-    ings = r.get("ingredients") or []
-    if ings:
-        st.write("**מרכיבים:** " + " / ".join(str(i) for i in ings[:7]))
 
 
 def _advance(data=None):
@@ -297,20 +463,19 @@ def _logout():
     st.rerun()
 
 
-# =============================================================================
-# Sidebar (shown for all authenticated pages)
-# =============================================================================
-
 def _render_sidebar(uid, u):
     username = st.session_state.get("username") or db.get_username_by_phone(uid)
     with st.sidebar:
-        st.write(f"### שלום, {username}!")
+        st.markdown(
+            f"<div style='font-size:1.1rem;font-weight:900;color:#4CAF50;margin-bottom:2px'>"
+            f"שלום, {username}! 👋</div>",
+            unsafe_allow_html=True,
+        )
         goal_map = {"bulk": "הגדלת מסה", "cut": "ירידה", "maintain": "שמירה"}
         st.write(f"**מטרה:** {goal_map.get(u.get('goal', 'maintain'), '---')}")
         st.write(f"**יעד:** {int(_target(u))} קל'/יום")
         st.write(f"**TDEE:** {u.get('tdee', '---')} קל'")
-        kosher_str = "כשר" if u.get("is_kosher", 1) else "לא כשר"
-        st.write(f"**כשרות:** {kosher_str}")
+        st.write(f"**כשרות:** {'כשר' if u.get('is_kosher', 1) else 'לא כשר'}")
 
         st.markdown("---")
 
@@ -341,12 +506,7 @@ def _render_sidebar(uid, u):
             _logout()
 
 
-# =============================================================================
-# Authentication page
-# =============================================================================
-
 def show_auth():
-    # --- Auto-login from Remember Me cookie ---
     if _COOKIES_OK and _cookies:
         try:
             token = _cookies.get("nutrition_token")
@@ -364,8 +524,8 @@ def show_auth():
     _, center, _ = st.columns([1, 2, 1])
     with center:
         st.markdown(
-            "<h1 style='text-align:center;color:#2d7a45;font-size:2.2rem;'>🥗 תזונה חכמה</h1>"
-            "<p style='text-align:center;color:#4a5568;font-size:1.05rem;'>רשת חברתית לתזונה בריאה</p>",
+            "<h1 style='text-align:center;color:#4CAF50;font-size:2.4rem;'>🥗 תזונה חכמה</h1>"
+            "<p style='text-align:center;color:#6c757d;font-size:1.05rem;'>רשת חברתית לתזונה בריאה</p>",
             unsafe_allow_html=True,
         )
         st.markdown("---")
@@ -399,7 +559,7 @@ def show_auth():
         with tab_signup:
             with st.form("form_signup"):
                 new_uname = st.text_input("👤 שם משתמש (לפחות 3 תווים)")
-                new_pass = st.text_input("🔒 סיסמה (לפחות 6 תווים)", type="password")
+                new_pass  = st.text_input("🔒 סיסמה (לפחות 6 תווים)", type="password")
                 new_pass2 = st.text_input("🔒 אימות סיסמה", type="password")
                 if st.form_submit_button("הרשמה", use_container_width=True, type="primary"):
                     if len(new_uname.strip()) < 3:
@@ -421,10 +581,6 @@ def show_auth():
                             st.error(result)
 
 
-# =============================================================================
-# Profile setup wizard (4 steps, runs after first signup)
-# =============================================================================
-
 def _pstep1():
     st.subheader("שלב 1 מתוך 4 - פרטים אישיים")
     with st.form("ps1"):
@@ -442,20 +598,14 @@ def _pstep2():
     d = st.session_state.reg
     with st.form("ps2"):
         c1, c2 = st.columns(2)
-        age = c1.number_input("גיל (שנים)", 16, 80, int(d.get("age", 25)), step=1)
+        age    = c1.number_input("גיל (שנים)", 16, 80, int(d.get("age", 25)), step=1)
         height = c2.number_input("גובה (סנטימטר)", 140, 220, int(d.get("height_cm", 170)), step=1)
-        weight = c1.number_input(
-            "משקל (קילוגרם)", 35.0, 200.0, float(d.get("weight_kg", 70)), step=0.5, format="%.1f"
-        )
-        act_opts = {
-            1: "1 - יושבני", 2: "2 - קל",
-            3: "3 - מתון",  4: "4 - פעיל", 5: "5 - אינטנסיבי",
-        }
-        act = c2.selectbox(
-            "פעילות גופנית", list(act_opts.keys()),
-            index=int(d.get("activity", 2)) - 1,
-            format_func=lambda x: act_opts[x],
-        )
+        weight = c1.number_input("משקל (קילוגרם)", 35.0, 200.0,
+                                   float(d.get("weight_kg", 70)), step=0.5, format="%.1f")
+        act_opts = {1:"1 - יושבני", 2:"2 - קל", 3:"3 - מתון", 4:"4 - פעיל", 5:"5 - אינטנסיבי"}
+        act = c2.selectbox("פעילות גופנית", list(act_opts.keys()),
+                            index=int(d.get("activity", 2)) - 1,
+                            format_func=lambda x: act_opts[x])
         b1, b2 = st.columns(2)
         if b1.form_submit_button("חזור", use_container_width=True):
             _go_back()
@@ -471,11 +621,9 @@ def _pstep3():
         kosher = st.toggle("שמירת כשרות - הפרדת בשר וחלב 6 שעות",
                             value=bool(d.get("is_kosher", 1)))
         st.markdown("---")
-        pref = st.radio(
-            "העדפת מזון",
-            ["פחמימות - פסטה, אורז, לחם", "שומנים בריאים - אבוקדו, דגים, אגוזים"],
-            index=0 if d.get("carb_pref", "carbs") == "carbs" else 1,
-        )
+        pref = st.radio("העדפת מזון",
+                        ["פחמימות - פסטה, אורז, לחם", "שומנים בריאים - אבוקדו, דגים, אגוזים"],
+                        index=0 if d.get("carb_pref", "carbs") == "carbs" else 1)
         spice = st.radio("טעם מועדף", ["חריף", "עדין"],
                          index=0 if d.get("spice_pref") == "spicy" else 1, horizontal=True)
         dis = st.text_input("מאכלים שאינך אוהב (מופרדים בפסיק)",
@@ -494,52 +642,51 @@ def _pstep3():
 def _pstep4(uid):
     st.subheader("שלב 4 מתוך 4 - מטרה ומחויבות")
     d = st.session_state.reg
+    with st.form("ps4"):
+        goal_opts = {
+            "הגדלת מסה שרירית": "bulk",
+            "ירידה במשקל":       "cut",
+            "שמירה על המשקל":    "maintain",
+        }
+        goal_label = st.radio("מה המטרה שלך?", list(goal_opts.keys()))
+        goal = goal_opts[goal_label]
 
-    goal_opts = {
-        "הגדלת מסה שרירית": "bulk",
-        "ירידה במשקל":       "cut",
-        "שמירה על המשקל":    "maintain",
-    }
-    goal_label = st.radio("מה המטרה שלך?", list(goal_opts.keys()))
-    goal = goal_opts[goal_label]
+        gkg = None
+        commit = None
+        if goal != "maintain":
+            verb = "לעלות" if goal == "bulk" else "לרדת"
+            gkg = st.number_input(f"כמה קילוגרם תרצה {verb}?",
+                                   1.0, 60.0, float(d.get("goal_kg") or 10), 0.5, format="%.1f")
+            commit = st.radio("רמת מחויבות", list(COMMITMENT.keys()), index=1,
+                              captions=["0.25 ק\"ג/שבוע", "0.5 ק\"ג/שבוע (מומלץ)",
+                                        "0.8 ק\"ג/שבוע", "1 ק\"ג/שבוע"])
 
-    gkg = None
-    commit = None
-    if goal != "maintain":
-        verb = "לעלות" if goal == "bulk" else "לרדת"
-        gkg = st.number_input(
-            f"כמה קילוגרם תרצה {verb}?",
-            1.0, 60.0, float(d.get("goal_kg") or 10), 0.5, format="%.1f",
-        )
-        commit = st.radio(
-            "רמת מחויבות", list(COMMITMENT.keys()), index=1,
-            captions=["0.25 ק\"ג/שבוע", "0.5 ק\"ג/שבוע (מומלץ)", "0.8 ק\"ג/שבוע", "1 ק\"ג/שבוע"],
-        )
+        if d.get("weight_kg") and d.get("height_cm") and d.get("age") and d.get("sex"):
+            tdee_v = _tdee(float(d["weight_kg"]), float(d["height_cm"]),
+                           int(d["age"]), str(d["sex"]), int(d.get("activity", 2)))
+            ci = COMMITMENT.get(commit, {}) if commit else {}
+            delta = ci.get("delta", 0)
+            bonus = ci.get("bulk_bonus", 0) if goal == "bulk" else 0
+            tgt = tdee_v if goal == "maintain" else (
+                tdee_v - delta if goal == "cut" else tdee_v + delta + bonus
+            )
+            c1, c2, c3 = st.columns(3)
+            c1.metric("TDEE", f"{tdee_v} קל'")
+            c2.metric("יעד יומי", f"{tgt} קל'")
+            if goal != "maintain" and commit and gkg:
+                weeks = round(float(gkg) / COMMITMENT[commit]["kg_week"])
+                c3.metric("צפי", f"~{weeks} שבועות")
+            if goal == "bulk" and commit == "קיצוני ⚡":
+                st.warning("מצב קיצוני: עודף 2100 קל' ביום - מאוד אינטנסיבי!")
 
-    # Live preview
-    if d.get("weight_kg") and d.get("height_cm") and d.get("age") and d.get("sex"):
-        tdee_v = _tdee(float(d["weight_kg"]), float(d["height_cm"]),
-                       int(d["age"]), str(d["sex"]), int(d.get("activity", 2)))
-        ci = COMMITMENT.get(commit, {}) if commit else {}
-        delta = ci.get("delta", 0)
-        bonus = ci.get("bulk_bonus", 0) if goal == "bulk" else 0
-        tgt = tdee_v if goal == "maintain" else (
-            tdee_v - delta if goal == "cut" else tdee_v + delta + bonus
-        )
-        c1, c2, c3 = st.columns(3)
-        c1.metric("TDEE", f"{tdee_v} קל'")
-        c2.metric("יעד יומי", f"{tgt} קל'")
-        if goal != "maintain" and commit and gkg:
-            weeks = round(float(gkg) / COMMITMENT[commit]["kg_week"])
-            c3.metric("צפי", f"~{weeks} שבועות")
-        if goal == "bulk" and commit == "קיצוני ⚡":
-            st.warning("מצב קיצוני: עודף 2100 קל' ביום - מאוד אינטנסיבי!")
+        st.markdown("---")
+        b1, b2 = st.columns(2)
+        go_back = b1.form_submit_button("חזור", use_container_width=True)
+        go_next = b2.form_submit_button("צור פרופיל", use_container_width=True, type="primary")
 
-    st.markdown("---")
-    b1, b2 = st.columns(2)
-    if b1.button("חזור", use_container_width=True):
+    if go_back:
         _go_back()
-    if b2.button("צור פרופיל", use_container_width=True, type="primary"):
+    if go_next:
         if not d.get("weight_kg") or not d.get("height_cm"):
             st.error("חזור ומלא נתונים פיזיים")
             return
@@ -572,56 +719,40 @@ def _pstep4(uid):
 
 
 def show_profile_setup(uid):
-    st.title("הגדרת פרופיל תזונה")
+    st.markdown(
+        "<h1 style='color:#4CAF50'>הגדרת פרופיל תזונה</h1>",
+        unsafe_allow_html=True,
+    )
     st.progress(st.session_state.step / 4, text=f"שלב {st.session_state.step} מתוך 4")
     s = st.session_state.step
-    if s == 1:
-        _pstep1()
-    elif s == 2:
-        _pstep2()
-    elif s == 3:
-        _pstep3()
-    elif s == 4:
-        _pstep4(uid)
+    if s == 1:   _pstep1()
+    elif s == 2: _pstep2()
+    elif s == 3: _pstep3()
+    elif s == 4: _pstep4(uid)
 
-
-# =============================================================================
-# Daily menu dashboard
-# =============================================================================
 
 def show_dashboard(uid, u):
     target_cal = int(_target(u))
     tab_menu, tab_shop, tab_progress, tab_profile_edit = st.tabs([
-        "תפריט יומי", "רשימת קניות", "התקדמות", "עריכת פרופיל"
+        "🍽️ תפריט יומי", "🛒 רשימת קניות", "📈 התקדמות", "👤 עריכת פרופיל"
     ])
 
-    # ------------------------------------------------------------------
-    # Tab: תפריט יומי
-    # ------------------------------------------------------------------
     with tab_menu:
         name_disp = u.get("name", "").split()[0] if u.get("name") else ""
         st.markdown(
-            f"<h2 style='color:#2d7a45;margin-bottom:4px;'>שלום, {name_disp}! 👋</h2>",
+            f"<h2 style='color:#4CAF50;margin-bottom:4px;'>שלום, {name_disp}! 👋</h2>",
             unsafe_allow_html=True,
         )
+
         consumed = db.get_daily_calories(uid)
         pct = min(consumed / target_cal, 1.0) if target_cal else 0.0
         remaining = max(target_cal - consumed, 0)
 
-        # --- Donut charts row ---
         today_logs = db.get_today_logs(uid)
-        pro_consumed  = sum(r.get("calories", 0) * 0 for r in today_logs)  # placeholder
-        logs_df = pd.DataFrame(today_logs) if today_logs else pd.DataFrame()
 
-        dc1, dc2, dc3, dc4 = st.columns(4)
-        dc1.plotly_chart(
-            _donut(consumed, target_cal, "קלוריות", "#43a047", f"מתוך {target_cal}"),
-            use_container_width=True, config={"displayModeBar": False},
-        )
         goal_pro  = max(int(target_cal * 0.30 / 4), 1)
         goal_carb = max(int(target_cal * 0.45 / 4), 1)
         goal_fat  = max(int(target_cal * 0.25 / 9), 1)
-        # Estimate macros from today's logged meals via RECIPES lookup
         est_pro = est_carb = est_fat = 0
         if today_logs:
             for row in today_logs:
@@ -630,16 +761,23 @@ def show_dashboard(uid, u):
                 est_pro  += r.get("pro",  0)
                 est_carb += r.get("carb", 0)
                 est_fat  += r.get("fat",  0)
+
+        # Compact horizontal donut row
+        dc1, dc2, dc3, dc4 = st.columns([1, 1, 1, 1])
+        dc1.plotly_chart(
+            _donut(consumed,  target_cal, "🔥 קלוריות", "#4CAF50", f"/{target_cal}"),
+            use_container_width=True, config={"displayModeBar": False},
+        )
         dc2.plotly_chart(
-            _donut(est_pro,  goal_pro,  "חלבון",    "#1976d2", "g"),
+            _donut(est_pro,   goal_pro,   "💪 חלבון",   "#FF7043", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc3.plotly_chart(
-            _donut(est_carb, goal_carb, "פחמימות",  "#f57c00", "g"),
+            _donut(est_carb,  goal_carb,  "🌾 פחמימות", "#F9A825", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc4.plotly_chart(
-            _donut(est_fat,  goal_fat,  "שומן",     "#8e24aa", "g"),
+            _donut(est_fat,   goal_fat,   "🥑 שומן",    "#8e24aa", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
 
@@ -659,9 +797,10 @@ def show_dashboard(uid, u):
                           ("dinner",   "ארוחת ערב")]:
             cat_icon = {"breakfast": "🌅", "lunch": "☀️", "dinner": "🌙"}[cat]
             st.markdown(f"### {cat_icon} {lbl}")
+
             web_r = _safe_web(cat)
-            keys = _sorted_keys(cat, u)
-            idx = int(st.session_state[f"swap_{cat}"]) % len(keys)
+            keys  = _sorted_keys(cat, u)
+            idx   = int(st.session_state[f"swap_{cat}"]) % len(keys)
             current = web_r if web_r else RECIPES.get(keys[idx])
 
             if not current:
@@ -669,15 +808,17 @@ def show_dashboard(uid, u):
                 st.markdown("---")
                 continue
 
-            # Main recipe card
+            web_badge = (
+                "&nbsp;<span class='badge'>רשת</span>"
+                if current.get("source") in ("web", "fallback") else ""
+            )
             st.markdown(
                 f'<div class="recipe-card">'
-                f'<b>{current.get("name", "---")}</b>'
-                f'{"&nbsp;<span class=\'badge\'>רשת</span>" if current.get("source") in ("web","fallback") else ""}<br>'
-                f'🔥 {current.get("cal",0)} קל\' &nbsp;|&nbsp; '
-                f'💪 {current.get("pro",0)}g חלבון &nbsp;|&nbsp; '
-                f'🍞 {current.get("carb",0)}g פחמימות &nbsp;|&nbsp; '
-                f'🥑 {current.get("fat",0)}g שומן &nbsp;|&nbsp; '
+                f'<b style="font-size:1.05rem">{current.get("name","---")}{web_badge}</b><br>'
+                f'🔥 <b style="color:#FF7043">{current.get("cal",0)}</b> קל\'&nbsp;|&nbsp;'
+                f'💪 {current.get("pro",0)}g חלבון&nbsp;|&nbsp;'
+                f'🍞 {current.get("carb",0)}g פחמימות&nbsp;|&nbsp;'
+                f'🥑 {current.get("fat",0)}g שומן&nbsp;|&nbsp;'
                 f'⏱ {current.get("prep","---")}'
                 f'</div>',
                 unsafe_allow_html=True,
@@ -696,7 +837,7 @@ def show_dashboard(uid, u):
                             str(current.get("type", "pareve")), cat, cal)
                 if current.get("type") == "meat":
                     db.update_user(uid, last_meat_ts=datetime.utcnow().isoformat())
-                st.toast(f"{current.get('name', '')} - {cal} קל'")
+                st.toast(f"{current.get('name','')} - {cal} קל'")
                 st.rerun()
 
             if b2.button("🔄 החלף", key=f"swap_{cat}_btn"):
@@ -719,7 +860,6 @@ def show_dashboard(uid, u):
                 st.session_state[f"web_{cat}"] = None
                 st.rerun()
 
-            # --- Full recipe details (clickable expander) ---
             with st.expander("📖 פרטים מלאים — מרכיבים והוראות", expanded=False):
                 ings_full = current.get("ingredients") or []
                 if ings_full:
@@ -734,21 +874,20 @@ def show_dashboard(uid, u):
                 if not ings_full and not steps_full:
                     st.info("אין פרטים נוספים למתכון זה")
 
-            # --- Community top-rated recommendations ---
             top_recs = db.get_top_community_recipes(category=cat, limit=3)
             if top_recs:
                 with st.expander(f"⭐ המלצות קהילה עבור {lbl}", expanded=False):
                     st.caption("ממוינות לפי דירוג גבוה ביותר")
                     for i, rec in enumerate(top_recs):
-                        likes = rec.get("likes_count", 0)
-                        stars = _stars(likes)
-                        medal = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
+                        likes  = rec.get("likes_count", 0)
+                        stars  = _stars(likes)
+                        medal  = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
                         st.markdown(
                             f'<div class="community-card">'
                             f'{medal} <b>{rec["name"]}</b>'
                             f'&nbsp;<span class="badge badge-comm">קהילה</span><br>'
                             f'<span class="stars">{stars}</span>'
-                            f'&nbsp; {likes} לייקים'
+                            f'&nbsp;{likes} לייקים'
                             f'&nbsp;·&nbsp; 🔥 {rec.get("calories",0)} קל\''
                             f'&nbsp;·&nbsp; 💪 {rec.get("protein",0)}g'
                             f'&nbsp;·&nbsp; ✍️ {rec.get("username","")}'
@@ -760,7 +899,6 @@ def show_dashboard(uid, u):
                             if rec.get("difficulty"): parts.append(f"קושי: {rec['difficulty']}")
                             if rec.get("prep_time"):  parts.append(f"⏱ {rec['prep_time']}")
                             st.caption(" · ".join(parts))
-
                         comm_c1, comm_c2 = st.columns([1, 5])
                         if comm_c1.button("✅ אכלתי", key=f"comm_ate_{cat}_{rec['id']}"):
                             db.add_daily_calories(uid, int(rec.get("calories", 0)))
@@ -780,17 +918,13 @@ def show_dashboard(uid, u):
             df["שעה"] = pd.to_datetime(df["שעה"]).dt.strftime("%H:%M")
             st.table(df)
 
-    # ------------------------------------------------------------------
-    # Tab: רשימת קניות
-    # ------------------------------------------------------------------
     with tab_shop:
-        st.write("## רשימת קניות שבועית")
+        st.markdown("<h2>רשימת קניות שבועית</h2>", unsafe_allow_html=True)
         st.caption("x5 לשבוע שלם")
         meals = {}
         for cat in ("breakfast", "lunch", "dinner"):
             wr = _safe_web(cat)
             meals[cat] = wr if wr else RECIPES.get(_sorted_keys(cat, u)[0], {})
-
         seen, rows = set(), []
         for cat, meal in meals.items():
             for ing in meal.get("ingredients") or []:
@@ -803,11 +937,8 @@ def show_dashboard(uid, u):
         if u.get("disliked_foods"):
             st.warning(f"מוסר מהתפריט: {u['disliked_foods']}")
 
-    # ------------------------------------------------------------------
-    # Tab: התקדמות
-    # ------------------------------------------------------------------
     with tab_progress:
-        st.write("## התקדמות")
+        st.markdown("<h2>התקדמות</h2>", unsafe_allow_html=True)
         c_chart, c_form = st.columns([2, 1])
         with c_chart:
             wh = db.get_weight_history(uid, days=30)
@@ -818,7 +949,6 @@ def show_dashboard(uid, u):
                 st.line_chart(wdf.set_index("day")["weight_kg"])
             else:
                 st.info("הוסף משקל ראשון בטופס.")
-
             ch = db.get_calorie_history(uid, days=7)
             if ch:
                 cdf = pd.DataFrame(ch)
@@ -828,18 +958,16 @@ def show_dashboard(uid, u):
                 st.line_chart(
                     cdf.set_index("day").rename(columns={"total": "בפועל"})[["בפועל", "יעד"]]
                 )
-
         with c_form:
             st.write("### עדכון משקל")
             with st.form("wf"):
                 nw = st.number_input("משקל (ק\"ג)", 30.0, 300.0,
                                       float(u.get("weight_kg") or 70), 0.5, "%.1f")
-                if st.form_submit_button("שמור", use_container_width=True):
+                if st.form_submit_button("שמור", use_container_width=True, type="primary"):
                     db.log_weight(uid, nw)
                     st.success(f"{nw} ק\"ג נשמר!")
                     st.rerun()
-
-            goal_t = u.get("goal", "maintain")
+            goal_t  = u.get("goal", "maintain")
             goal_kg = u.get("goal_kg") or 0
             if goal_t != "maintain" and goal_kg:
                 hist = db.get_weight_history(uid, days=365)
@@ -859,28 +987,24 @@ def show_dashboard(uid, u):
                         st.balloons()
                         st.success("הגעת ליעד!")
 
-    # ------------------------------------------------------------------
-    # Tab: עריכת פרופיל
-    # ------------------------------------------------------------------
     with tab_profile_edit:
-        st.write("## עריכת פרופיל")
+        st.markdown("<h2>עריכת פרופיל</h2>", unsafe_allow_html=True)
         goal_disp = {"bulk": "הגדלת מסה", "cut": "ירידה", "maintain": "שמירה"}
         rows_p = [
-            ["שם",        str(u.get("name", "---"))],
-            ["גיל",       f"{u.get('age', '---')} שנים"],
-            ["גובה",      f"{u.get('height_cm', '---')} ס\"מ"],
-            ["משקל",      f"{u.get('weight_kg', '---')} ק\"ג"],
-            ["TDEE",      f"{u.get('tdee', '---')} קל'"],
+            ["שם",       str(u.get("name", "---"))],
+            ["גיל",      f"{u.get('age','---')} שנים"],
+            ["גובה",     f"{u.get('height_cm','---')} ס\"מ"],
+            ["משקל",     f"{u.get('weight_kg','---')} ק\"ג"],
+            ["TDEE",     f"{u.get('tdee','---')} קל'"],
             ["יעד יומי", f"{target_cal} קל'"],
-            ["מטרה",      goal_disp.get(u.get("goal", "maintain"), "---")],
-            ["מחויבות",   str(u.get("commitment_label") or "---")],
-            ["כשרות",     "כשר" if u.get("is_kosher", 1) else "לא כשר"],
-            ["העדפה",     "פחמימות" if u.get("carb_pref") == "carbs" else "שומנים"],
-            ["טעם",       "חריף" if u.get("spice_pref") == "spicy" else "עדין"],
-            ["מוסרים",    str(u.get("disliked_foods") or "---")],
+            ["מטרה",     goal_disp.get(u.get("goal","maintain"), "---")],
+            ["מחויבות",  str(u.get("commitment_label") or "---")],
+            ["כשרות",    "כשר" if u.get("is_kosher", 1) else "לא כשר"],
+            ["העדפה",    "פחמימות" if u.get("carb_pref") == "carbs" else "שומנים"],
+            ["טעם",      "חריף" if u.get("spice_pref") == "spicy" else "עדין"],
+            ["מוסרים",   str(u.get("disliked_foods") or "---")],
         ]
         st.table(pd.DataFrame(rows_p, columns=["שדה", "ערך"]))
-
         st.write("### עדכון מהיר")
         with st.form("ef"):
             upd_w = st.number_input("משקל (ק\"ג)", 30.0, 300.0,
@@ -903,20 +1027,12 @@ def show_dashboard(uid, u):
                 st.rerun()
 
 
-# =============================================================================
-# Community page
-# =============================================================================
-
 def show_community(uid, u):
     username = st.session_state.get("username") or db.get_username_by_phone(uid)
-    tab_feed, tab_recipes = st.tabs(["פיד קהילתי", "מתכוני קהילה"])
+    tab_feed, tab_recipes = st.tabs(["📢 פיד קהילתי", "🍳 מתכוני קהילה"])
 
-    # ------------------------------------------------------------------
-    # Tab: פיד קהילתי
-    # ------------------------------------------------------------------
     with tab_feed:
-        st.write("## פיד קהילתי")
-
+        st.markdown("<h2>פיד קהילתי</h2>", unsafe_allow_html=True)
         with st.form("new_post_form"):
             content = st.text_area("שתף עדכון עם הקהילה...", max_chars=500,
                                     placeholder="היום אכלתי ארוחת בוקר מצוינת! הגעתי ל-2000 קל'...")
@@ -926,33 +1042,31 @@ def show_community(uid, u):
                     st.rerun()
                 else:
                     st.warning("נא לכתוב משהו לפני הפרסום")
-
         st.markdown("---")
-
         posts = db.get_feed_posts(40)
         if not posts:
             st.info("הפיד ריק - היה הראשון לפרסם!")
         for post in posts:
-            col_text, col_del = st.columns([10, 1])
-            with col_text:
-                posted_date = str(post.get("posted_at", ""))[:16].replace("T", " ")
-                st.write(f"**{post['username']}** · {posted_date}")
-                st.write(post["content"])
-            with col_del:
+            posted_date = str(post.get("posted_at", ""))[:16].replace("T", " ")
+            with st.container():
+                st.markdown(
+                    f'<div class="feed-card">'
+                    f'<div style="font-weight:700;font-size:.95rem">{post["username"]}'
+                    f'<span style="color:#8e8e8e;font-weight:400;font-size:.82rem;margin-right:8px">· {posted_date}</span>'
+                    f'</div>'
+                    f'<div style="margin-top:6px;line-height:1.6">{post["content"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
                 if post["phone"] == uid:
-                    if st.button("🗑", key=f"del_post_{post['id']}", help="מחק פוסט"):
+                    if st.button("🗑 מחק", key=f"del_post_{post['id']}", help="מחק פוסט"):
                         db.delete_feed_post(post["id"], uid)
                         st.rerun()
-            st.markdown("---")
 
-    # ------------------------------------------------------------------
-    # Tab: מתכוני קהילה
-    # ------------------------------------------------------------------
     with tab_recipes:
-        st.write("## מתכוני קהילה")
+        st.markdown("<h2>מתכוני קהילה</h2>", unsafe_allow_html=True)
 
-        with st.expander("שתף מתכון חדש", expanded=False):
-            # --- Auto-nutrition calculator (outside form so button works) ---
+        with st.expander("➕ שתף מתכון חדש", expanded=False):
             st.write("#### חישוב תזונה אוטומטי")
             auto_ings = st.text_area(
                 "הזן מרכיבים לחישוב אוטומטי",
@@ -973,45 +1087,37 @@ def show_community(uid, u):
             if "est_cal" in st.session_state:
                 em1, em2, em3, em4 = st.columns(4)
                 em1.metric("קלוריות (מוערך)", st.session_state["est_cal"])
-                em2.metric("חלבון (מוערך)", f"{st.session_state['est_pro']}g")
+                em2.metric("חלבון (מוערך)",   f"{st.session_state['est_pro']}g")
                 em3.metric("פחמימות (מוערך)", f"{st.session_state['est_carb']}g")
-                em4.metric("שומן (מוערך)", f"{st.session_state['est_fat']}g")
+                em4.metric("שומן (מוערך)",    f"{st.session_state['est_fat']}g")
                 st.caption("הערכים הועברו לטופס שיתוף המתכון למטה")
 
             st.markdown("---")
-            # --- Sharing form ---
             with st.form("share_recipe_form"):
                 r_name = st.text_input("שם המתכון")
                 r_desc = st.text_area("תיאור קצר (אופציונלי)", max_chars=200)
-                r_cat = st.selectbox("קטגוריה",
-                                      ["breakfast", "lunch", "dinner", "snack"],
-                                      format_func=lambda x: {
-                                          "breakfast": "ארוחת בוקר",
-                                          "lunch": "ארוחת צהריים",
-                                          "dinner": "ארוחת ערב",
-                                          "snack": "חטיף",
-                                      }[x])
-                r_ings = st.text_area("מרכיבים (שורה לכל מרכיב)",
-                                       value=auto_ings if auto_ings.strip() else "",
-                                       placeholder="200 גרם עוף\n1 כוס אורז\nשמן זית")
-                r_inst = st.text_area("הוראות הכנה",
-                                       placeholder="1. בשל את האורז...\n2. צלה את העוף...")
+                r_cat  = st.selectbox("קטגוריה",
+                                       ["breakfast", "lunch", "dinner", "snack"],
+                                       format_func=lambda x: {
+                                           "breakfast": "ארוחת בוקר",
+                                           "lunch":     "ארוחת צהריים",
+                                           "dinner":    "ארוחת ערב",
+                                           "snack":     "חטיף",
+                                       }[x])
+                r_ings  = st.text_area("מרכיבים (שורה לכל מרכיב)",
+                                        value=auto_ings if auto_ings.strip() else "",
+                                        placeholder="200 גרם עוף\n1 כוס אורז\nשמן זית")
+                r_inst  = st.text_area("הוראות הכנה",
+                                        placeholder="1. בשל את האורז...\n2. צלה את העוף...")
                 fd1, fd2, fd3 = st.columns(3)
-                r_media = fd1.text_input("קישור תמונה / סרטון (אופציונלי)",
-                                          placeholder="https://...")
+                r_media = fd1.text_input("קישור תמונה / סרטון (אופציונלי)", placeholder="https://...")
                 r_prep  = fd2.text_input("זמן הכנה", placeholder="30 דקות")
                 r_diff  = fd3.selectbox("רמת קושי", ["", "קל", "בינוני", "קשה"])
-
                 ci1, ci2, ci3, ci4 = st.columns(4)
-                r_cal  = ci1.number_input("קלוריות", 0, 3000,
-                                           st.session_state.get("est_cal", 400), step=10)
-                r_pro  = ci2.number_input("חלבון (g)", 0, 200,
-                                           st.session_state.get("est_pro", 30), step=1)
-                r_carb = ci3.number_input("פחמימות (g)", 0, 400,
-                                           st.session_state.get("est_carb", 40), step=1)
-                r_fat  = ci4.number_input("שומן (g)", 0, 200,
-                                           st.session_state.get("est_fat", 15), step=1)
-
+                r_cal  = ci1.number_input("קלוריות",    0, 4000, st.session_state.get("est_cal",  400), step=10)
+                r_pro  = ci2.number_input("חלבון (g)",  0, 200,  st.session_state.get("est_pro",   30), step=1)
+                r_carb = ci3.number_input("פחמימות (g)",0, 400,  st.session_state.get("est_carb",  40), step=1)
+                r_fat  = ci4.number_input("שומן (g)",   0, 200,  st.session_state.get("est_fat",   15), step=1)
                 if st.form_submit_button("שתף מתכון", use_container_width=True, type="primary"):
                     if not r_name.strip():
                         st.error("נא להזין שם מתכון")
@@ -1024,30 +1130,38 @@ def show_community(uid, u):
                                         media_url=r_media.strip(),
                                         prep_time=r_prep.strip(),
                                         difficulty=r_diff)
-                        for k in ("est_cal", "est_pro", "est_carb", "est_fat"):
+                        for k in ("est_cal","est_pro","est_carb","est_fat"):
                             st.session_state.pop(k, None)
                         st.success("המתכון שותף בהצלחה!")
                         st.rerun()
 
         st.markdown("---")
-
         liked_ids = db.get_liked_recipe_ids(uid)
         saved_ids = db.get_saved_recipe_ids(uid)
-        recipes = db.get_community_recipes(50)
+        recipes   = db.get_community_recipes(50)
 
         if not recipes:
             st.info("אין עדיין מתכונים קהילתיים - היה הראשון לשתף!")
 
         for rec in recipes:
-            cat_heb = {"breakfast": "בוקר", "lunch": "צהריים",
-                       "dinner": "ערב", "snack": "חטיף"}.get(rec.get("category", ""), "")
-            st.write(f"**{rec['name']}** · {cat_heb}")
+            cat_heb = {"breakfast":"בוקר","lunch":"צהריים","dinner":"ערב","snack":"חטיף"}.get(
+                rec.get("category",""), "")
+            st.markdown(
+                f'<div class="recipe-card">'
+                f'<b style="font-size:1.05rem">{rec["name"]}</b>'
+                f'&nbsp;<span class="badge badge-comm">קהילה · {cat_heb}</span><br>'
+                f'🔥 <b style="color:#FF7043">{rec.get("calories",0)}</b> קל\'&nbsp;|&nbsp;'
+                f'💪 {rec.get("protein",0)}g&nbsp;|&nbsp;'
+                f'🍞 {rec.get("carbs",0)}g&nbsp;|&nbsp;'
+                f'🥑 {rec.get("fat",0)}g'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
-            # Media
-            media_url = rec.get("media_url", "").strip()
+            media_url = (rec.get("media_url") or "").strip()
             if media_url:
                 lower_url = media_url.lower()
-                if any(lower_url.endswith(ext) for ext in (".mp4", ".mov", ".webm", ".ogg")):
+                if any(lower_url.endswith(ext) for ext in (".mp4",".mov",".webm",".ogg")):
                     st.video(media_url)
                 else:
                     try:
@@ -1055,54 +1169,39 @@ def show_community(uid, u):
                     except Exception:
                         st.link_button("פתח מדיה", media_url)
 
-            st.write(
-                f"קלוריות: {rec.get('calories', 0)} | "
-                f"חלבון: {rec.get('protein', 0)}g | "
-                f"פחמימות: {rec.get('carbs', 0)}g | "
-                f"שומן: {rec.get('fat', 0)}g"
-            )
             if rec.get("description"):
                 st.write(rec["description"])
 
             if rec.get("ingredients"):
-                with st.expander("מרכיבים"):
+                with st.expander("🛒 מרכיבים"):
                     for line in rec["ingredients"].split("\n"):
                         if line.strip():
                             st.write(f"- {line.strip()}")
 
-            # Details expander: instructions, prep_time, difficulty
-            has_details = any([
-                rec.get("instructions"),
-                rec.get("prep_time"),
-                rec.get("difficulty"),
-            ])
+            has_details = any([rec.get("instructions"), rec.get("prep_time"), rec.get("difficulty")])
             if has_details:
-                with st.expander("פרטים נוספים"):
+                with st.expander("📋 פרטים נוספים"):
                     if rec.get("difficulty") or rec.get("prep_time"):
                         dc1, dc2 = st.columns(2)
-                        if rec.get("difficulty"):
-                            dc1.metric("רמת קושי", rec["difficulty"])
-                        if rec.get("prep_time"):
-                            dc2.metric("זמן הכנה", rec["prep_time"])
+                        if rec.get("difficulty"): dc1.metric("רמת קושי", rec["difficulty"])
+                        if rec.get("prep_time"):  dc2.metric("זמן הכנה", rec["prep_time"])
                     if rec.get("instructions"):
                         st.write("**הוראות הכנה:**")
                         for line in rec["instructions"].split("\n"):
                             if line.strip():
                                 st.write(line.strip())
 
-            shared_date = str(rec.get("shared_at", ""))[:10]
+            shared_date = str(rec.get("shared_at",""))[:10]
             st.caption(f"שותף על ידי {rec['username']} | {shared_date} | "
                        f"{rec['likes_count']} לייקים · {rec['saves_count']} שמירות")
 
             btn_c1, btn_c2, _ = st.columns([1, 1, 4])
             rid = rec["id"]
             like_label = f"❤️ {rec['likes_count']}" if rid in liked_ids else f"🤍 {rec['likes_count']}"
-            save_label  = "🔖 שמור" if rid in saved_ids else "📌 שמור"
-
+            save_label = "🔖 שמור" if rid in saved_ids else "📌 שמור"
             if btn_c1.button(like_label, key=f"like_{rid}"):
                 db.toggle_like(rid, uid)
                 st.rerun()
-
             if btn_c2.button(save_label, key=f"save_{rid}"):
                 db.toggle_save(rid, uid)
                 st.rerun()
@@ -1110,45 +1209,38 @@ def show_community(uid, u):
             st.markdown("---")
 
 
-# =============================================================================
-# My profile page
-# =============================================================================
-
 def show_profile_page(uid, u):
-    username = st.session_state.get("username") or db.get_username_by_phone(uid)
+    username   = st.session_state.get("username") or db.get_username_by_phone(uid)
     target_cal = int(_target(u))
 
-    st.write(f"## הפרופיל של {username}")
+    st.markdown(f"<h2>הפרופיל של {username}</h2>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Stats
     col_stat, col_goal = st.columns(2)
     with col_stat:
         st.write("### נתונים")
-        st.metric("TDEE", f"{u.get('tdee', 0)} קל'")
-        st.metric("יעד יומי", f"{target_cal} קל'")
-        st.metric("משקל נוכחי", f"{u.get('weight_kg', '---')} ק\"ג")
+        st.metric("TDEE",         f"{u.get('tdee',0)} קל'")
+        st.metric("יעד יומי",     f"{target_cal} קל'")
+        st.metric("משקל נוכחי",  f"{u.get('weight_kg','---')} ק\"ג")
     with col_goal:
         st.write("### מטרה")
-        goal_disp = {"bulk": "הגדלת מסה", "cut": "ירידה במשקל", "maintain": "שמירה"}
-        st.write(f"**{goal_disp.get(u.get('goal', 'maintain'), '---')}**")
+        goal_disp = {"bulk":"הגדלת מסה","cut":"ירידה במשקל","maintain":"שמירה"}
+        st.write(f"**{goal_disp.get(u.get('goal','maintain'),'---')}**")
         if u.get("commitment_label"):
             st.write(f"מחויבות: {u['commitment_label']}")
         if u.get("goal_kg"):
             st.write(f"יעד: {u['goal_kg']} ק\"ג")
-        kosher_str = "כשר" if u.get("is_kosher", 1) else "לא כשר"
-        st.write(f"כשרות: {kosher_str}")
+        st.write(f"כשרות: {'כשר' if u.get('is_kosher',1) else 'לא כשר'}")
 
     st.markdown("---")
 
-    # My posts
     my_posts = db.get_posts_by_user(uid)
     st.write(f"### הפוסטים שלי ({len(my_posts)})")
     if my_posts:
         for post in my_posts:
             c1, c2 = st.columns([10, 1])
             with c1:
-                posted_date = str(post.get("posted_at", ""))[:16].replace("T", " ")
+                posted_date = str(post.get("posted_at",""))[:16].replace("T"," ")
                 st.write(f"{posted_date}")
                 st.write(post["content"])
             with c2:
@@ -1159,48 +1251,34 @@ def show_profile_page(uid, u):
     else:
         st.info("טרם פרסמת פוסטים")
 
-    # My shared recipes
     my_recipes = db.get_recipes_by_user(uid)
     st.write(f"### המתכונים שלי ({len(my_recipes)})")
     if my_recipes:
         for rec in my_recipes:
-            cat_heb = {"breakfast": "בוקר", "lunch": "צהריים",
-                       "dinner": "ערב", "snack": "חטיף"}.get(rec.get("category", ""), "")
+            cat_heb = {"breakfast":"בוקר","lunch":"צהריים","dinner":"ערב","snack":"חטיף"}.get(
+                rec.get("category",""),"")
             st.write(f"**{rec['name']}** · {cat_heb}")
-            st.write(
-                f"קלוריות: {rec.get('calories', 0)} | "
-                f"חלבון: {rec.get('protein', 0)}g | "
-                f"פחמימות: {rec.get('carbs', 0)}g | "
-                f"שומן: {rec.get('fat', 0)}g"
-            )
-            st.caption(f"{rec['likes_count']} לייקים · {str(rec.get('shared_at', ''))[:10]}")
+            st.write(f"קלוריות: {rec.get('calories',0)} | חלבון: {rec.get('protein',0)}g | "
+                     f"פחמימות: {rec.get('carbs',0)}g | שומן: {rec.get('fat',0)}g")
+            st.caption(f"{rec['likes_count']} לייקים · {str(rec.get('shared_at',''))[:10]}")
             st.markdown("---")
     else:
         st.info("טרם שיתפת מתכונים")
 
-    # Saved recipes
     saved = db.get_saved_recipes(uid)
     st.write(f"### מתכונים שמורים ({len(saved)})")
     if saved:
         for rec in saved:
-            st.write(f"**{rec['name']}** · {rec.get('username', '')}")
-            st.write(
-                f"קלוריות: {rec.get('calories', 0)} | "
-                f"חלבון: {rec.get('protein', 0)}g | "
-                f"פחמימות: {rec.get('carbs', 0)}g | "
-                f"שומן: {rec.get('fat', 0)}g"
-            )
+            st.write(f"**{rec['name']}** · {rec.get('username','')}")
+            st.write(f"קלוריות: {rec.get('calories',0)} | חלבון: {rec.get('protein',0)}g | "
+                     f"פחמימות: {rec.get('carbs',0)}g | שומן: {rec.get('fat',0)}g")
             st.markdown("---")
     else:
         st.info("אין מתכונים שמורים")
 
 
-# =============================================================================
-# Main router
-# =============================================================================
-
 def _main():
-    uid = st.session_state.get("uid")
+    uid  = st.session_state.get("uid")
     page = st.session_state.get("page", "auth")
 
     if not uid:
@@ -1209,7 +1287,7 @@ def _main():
 
     user = db.get_user(uid)
     if not user:
-        st.session_state.uid = None
+        st.session_state.uid  = None
         st.session_state.page = "auth"
         st.rerun()
         return
@@ -1218,7 +1296,6 @@ def _main():
         show_profile_setup(uid)
         return
 
-    # Render sidebar once for all authenticated pages
     _render_sidebar(uid, user)
 
     if page == "community":
