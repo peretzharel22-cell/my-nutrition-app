@@ -1,18 +1,4 @@
-# Web dashboard
 streamlit>=1.30.0
-
-# Data tables & charts
 pandas>=2.0.0
 plotly>=5.18.0
-
-# Cookie-based Remember Me
-streamlit-cookies-controller>=0.1.0
-
-# Recipe search (used in handler.py)
-duckduckgo-search>=8.1.1
-
-# Telegram bot
-python-telegram-bot==22.7
-
-# Environment variables (.env support)
-python-dotenv==1.0.1
+duckduckgo-search>=5.0.0
