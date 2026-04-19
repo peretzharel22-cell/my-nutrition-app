@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""app_web.py - Social Nutrition Network — Organic Modern Theme"""
+"""app_web.py - Social Nutrition Network — Minimalist Premium"""
 
 import streamlit as st
 import pandas as pd
@@ -23,164 +23,301 @@ except Exception:
 
 st.set_page_config(page_title="תזונה חכמה", page_icon="🥗", layout="wide")
 
-_OM_CSS = (
-    "@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');"
 
-    "html,body,[data-testid='stAppViewContainer'],[data-testid='stApp']{"
-    "background-color:#F4F1EA!important;"
-    "color:#355E3B!important;"
-    "font-family:'Heebo',sans-serif!important;"
-    "direction:rtl;text-align:right;}"
+def inject_css() -> None:
+    """Inject all custom CSS in one place. Nothing is printed to the screen."""
+    css = """
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
 
-    ".main .block-container{direction:rtl!important;text-align:right!important;padding-top:1.5rem;}"
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; }
 
-    "[data-testid='stMarkdownContainer'],[data-testid='stText'],label,p,h1,h2,h3,h4,h5,span{"
-    "direction:rtl!important;text-align:right!important;"
-    "font-family:'Heebo',sans-serif!important;color:#355E3B!important;}"
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"],
+section[data-testid="stMain"] {
+    background-color: #F8F9FA !important;
+    color: #1a1a1a !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    direction: rtl;
+    text-align: right;
+}
 
-    "input,textarea,select{direction:rtl!important;text-align:right!important;"
-    "background:#FFFFFF!important;color:#355E3B!important;"
-    "border:1.5px solid #D5CFC4!important;border-radius:8px!important;}"
+.main .block-container {
+    direction: rtl !important;
+    text-align: right !important;
+    padding-top: 2rem;
+    max-width: 1100px;
+}
 
-    "input:focus,textarea:focus{border-color:#3EB489!important;outline:none!important;}"
+/* ── Typography ── */
+[data-testid="stMarkdownContainer"],
+[data-testid="stText"],
+label, p, span {
+    direction: rtl !important;
+    text-align: right !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    color: #1a1a1a !important;
+}
 
-    "[data-testid='stSidebar']{"
-    "background:#FFFFFF!important;"
-    "border-left:3px solid #3EB489;}"
+h1, h2, h3, h4, h5 {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+    line-height: 1.3 !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
 
-    "[data-testid='stSidebar'] *{color:#355E3B!important;font-family:'Heebo',sans-serif!important;}"
+/* ── Sidebar ── */
+[data-testid="stSidebar"] {
+    background: #FFFFFF !important;
+    border-left: 1px solid #E9ECEF !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.04) !important;
+}
+[data-testid="stSidebar"] * {
+    color: #1a1a1a !important;
+    font-family: 'Heebo', sans-serif !important;
+}
+[data-testid="stSidebar"] button {
+    background: #4CAF50 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    margin-bottom: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    color: #fff !important;
+    transition: opacity 0.2s ease !important;
+}
+[data-testid="stSidebar"] button:hover {
+    opacity: 0.82 !important;
+    transform: none !important;
+}
 
-    "[data-testid='stSidebar'] button{"
-    "background:#3EB489!important;border:none!important;"
-    "border-radius:8px!important;margin-bottom:6px!important;"
-    "font-weight:700!important;font-size:.95rem!important;color:#fff!important;"
-    "transition:all .22s ease!important;}"
+/* ── Progress bar ── */
+.stProgress > div > div {
+    background: #4CAF50 !important;
+    border-radius: 4px !important;
+}
+.stProgress > div {
+    background: #E9ECEF !important;
+    border-radius: 4px !important;
+}
 
-    "[data-testid='stSidebar'] button:hover{"
-    "background:#2e9a72!important;transform:translateX(-3px)!important;"
-    "box-shadow:0 4px 14px rgba(62,180,137,.3)!important;}"
+/* ── Forms ── */
+div[data-testid="stForm"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E9ECEF !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
 
-    ".stProgress>div>div{background:#3EB489!important;border-radius:20px!important;}"
-    ".stProgress>div{background:#E8E2D9!important;border-radius:20px!important;}"
+/* ── Inputs ── */
+input, textarea, select,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
+    direction: rtl !important;
+    text-align: right !important;
+    background: #FFFFFF !important;
+    color: #1a1a1a !important;
+    border: 1px solid #DEE2E6 !important;
+    border-radius: 8px !important;
+    font-family: 'Heebo', sans-serif !important;
+    line-height: 1.6 !important;
+    transition: border-color 0.15s ease !important;
+}
+input:focus, textarea:focus {
+    border-color: #4CAF50 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.12) !important;
+}
 
-    "div[data-testid='stForm']{"
-    "background:rgba(255,255,255,.9)!important;"
-    "border:1.5px solid rgba(62,180,137,.25)!important;"
-    "border-radius:16px!important;padding:22px!important;"
-    "box-shadow:0 4px 20px rgba(53,94,59,.07)!important;}"
+/* ── Buttons ── */
+.stButton > button[kind="primary"] {
+    background: #4CAF50 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-family: 'Heebo', sans-serif !important;
+    color: #fff !important;
+    letter-spacing: 0.2px !important;
+    transition: opacity 0.2s ease !important;
+}
+.stButton > button[kind="primary"]:hover {
+    opacity: 0.85 !important;
+    box-shadow: 0 4px 12px rgba(76,175,80,0.28) !important;
+}
+.stButton > button[kind="secondary"] {
+    background: #FFFFFF !important;
+    border: 1px solid #4CAF50 !important;
+    border-radius: 8px !important;
+    color: #4CAF50 !important;
+    font-weight: 600 !important;
+    font-family: 'Heebo', sans-serif !important;
+    transition: opacity 0.2s ease !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    opacity: 0.75 !important;
+}
 
-    ".recipe-card{"
-    "background:#FFFFFF;"
-    "border:1.5px solid #E8E2D9;"
-    "border-radius:14px;"
-    "padding:16px 20px;"
-    "margin-bottom:10px;"
-    "box-shadow:0 3px 14px rgba(53,94,59,.07);"
-    "transition:transform .2s ease,box-shadow .2s ease,border-color .2s;}"
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px;
+    background: transparent;
+    border-bottom: 1px solid #E9ECEF;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 6px 6px 0 0 !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-family: 'Heebo', sans-serif !important;
+    color: #6c757d !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #4CAF50 !important;
+    border-bottom: 2px solid #4CAF50 !important;
+    background: transparent !important;
+}
 
-    ".recipe-card:hover{"
-    "transform:translateY(-3px) scale(1.01);"
-    "box-shadow:0 8px 28px rgba(62,180,137,.2);"
-    "border-color:#3EB489;}"
+/* ── Recipe card ── */
+.recipe-card {
+    background: #FFFFFF;
+    border: 1px solid #E9ECEF;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+    word-wrap: break-word;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.recipe-card:hover {
+    box-shadow: 0 4px 16px rgba(76,175,80,0.14);
+    border-color: #4CAF50;
+}
+.recipe-card b { font-weight: 700; }
 
-    ".community-card{"
-    "background:#FFFDF5;"
-    "border:1.5px solid rgba(248,131,121,.35);"
-    "border-radius:12px;"
-    "padding:12px 16px;"
-    "margin:6px 0;"
-    "box-shadow:0 3px 10px rgba(248,131,121,.08);"
-    "transition:transform .18s ease;}"
+/* ── Community card ── */
+.community-card {
+    background: #FFFFFF;
+    border: 1px solid #FFE0DC;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 6px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    overflow: hidden;
+    word-wrap: break-word;
+    transition: box-shadow 0.18s ease;
+}
+.community-card:hover {
+    box-shadow: 0 4px 12px rgba(255,107,107,0.12);
+}
 
-    ".community-card:hover{transform:translateY(-2px);}"
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    background: #4CAF50;
+    color: #fff !important;
+    border-radius: 20px;
+    padding: 1px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-right: 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.badge-comm { background: #FF7043 !important; }
+.badge-gold { background: #F9A825 !important; }
+.stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
 
-    ".stars{color:#f5a623;font-size:1.05rem;letter-spacing:1px;}"
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    border-radius: 10px !important;
+    border: 1px solid #E9ECEF !important;
+    background: #FFFFFF !important;
+    overflow: hidden !important;
+}
+[data-testid="stExpander"] summary {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    padding: 10px 14px !important;
+}
 
-    ".badge{"
-    "display:inline-block;"
-    "background:#3EB489;"
-    "color:#fff!important;"
-    "border-radius:20px;"
-    "padding:2px 11px;"
-    "font-size:.75rem;"
-    "font-weight:800;"
-    "margin-left:6px;"
-    "letter-spacing:.3px;}"
+/* ── Metrics ── */
+[data-testid="stMetric"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E9ECEF !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+}
+[data-testid="stMetricValue"] {
+    color: #4CAF50 !important;
+    font-weight: 700 !important;
+    font-family: 'Heebo', sans-serif !important;
+}
+[data-testid="stMetricLabel"] {
+    color: #6c757d !important;
+    font-family: 'Heebo', sans-serif !important;
+}
 
-    ".badge-gold{background:#e6a800!important;}"
-    ".badge-comm{background:#F88379!important;}"
+/* ── Tables ── */
+table {
+    background: #FFFFFF !important;
+    color: #1a1a1a !important;
+    width: 100% !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    border-collapse: collapse !important;
+}
+th {
+    background: #4CAF50 !important;
+    color: #fff !important;
+    padding: 10px 16px !important;
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+}
+td {
+    padding: 9px 16px !important;
+    border-bottom: 1px solid #F1F3F5 !important;
+    vertical-align: top !important;
+}
 
-    ".stTabs [data-baseweb='tab-list']{gap:6px;background:transparent;}"
+/* ── Thin dividers ── */
+hr {
+    border: none !important;
+    border-top: 1px solid #E9ECEF !important;
+    margin: 16px 0 !important;
+}
 
-    ".stTabs [data-baseweb='tab']{"
-    "border-radius:12px 12px 0 0!important;"
-    "padding:8px 18px!important;"
-    "font-weight:700!important;"
-    "font-family:'Heebo',sans-serif!important;"
-    "color:#7a9b7d!important;}"
+/* ── Alerts ── */
+[data-testid="stAlert"] {
+    background: #FFFFFF !important;
+    border-radius: 8px !important;
+    border-right: 3px solid #4CAF50 !important;
+    color: #1a1a1a !important;
+    padding: 12px 16px !important;
+}
+[data-testid="stAlert"][data-baseweb="notification"][kind="warning"],
+div[data-testid="stAlert"].st-emotion-cache-1bt9eao {
+    border-right-color: #FF7043 !important;
+}
 
-    ".stTabs [aria-selected='true']{"
-    "background:#3EB489!important;color:#fff!important;}"
+/* ── Captions & secondary text ── */
+[data-testid="stCaptionContainer"],
+.stCaption { color: #6c757d !important; font-size: 0.85rem !important; }
+"""
+    st.markdown("<style>" + css + "</style>", unsafe_allow_html=True)
 
-    ".stButton>button[kind='primary']{"
-    "background:#3EB489!important;"
-    "border:none!important;"
-    "border-radius:12px!important;"
-    "font-weight:700!important;"
-    "font-family:'Heebo',sans-serif!important;"
-    "color:#fff!important;"
-    "transition:all .2s ease!important;}"
 
-    ".stButton>button[kind='primary']:hover{"
-    "background:#2e9a72!important;"
-    "transform:translateY(-1px)!important;"
-    "box-shadow:0 6px 20px rgba(62,180,137,.35)!important;}"
-
-    ".stButton>button[kind='secondary']{"
-    "background:#FFFFFF!important;"
-    "border:1.5px solid #3EB489!important;"
-    "border-radius:12px!important;"
-    "color:#355E3B!important;"
-    "font-weight:600!important;"
-    "font-family:'Heebo',sans-serif!important;"
-    "transition:all .2s!important;}"
-
-    ".stButton>button[kind='secondary']:hover{"
-    "background:#3EB489!important;color:#fff!important;"
-    "transform:translateY(-1px)!important;}"
-
-    "[data-testid='stExpander']{"
-    "border-radius:12px!important;"
-    "border:1.5px solid rgba(62,180,137,.2)!important;"
-    "background:#FFFFFF!important;}"
-
-    "[data-testid='stMetric']{"
-    "background:#FFFFFF!important;"
-    "border:1.5px solid #E8E2D9!important;"
-    "border-radius:12px!important;"
-    "padding:14px!important;"
-    "box-shadow:0 2px 8px rgba(53,94,59,.06)!important;}"
-
-    "[data-testid='stMetricValue']{color:#3EB489!important;font-weight:700!important;}"
-    "[data-testid='stMetricLabel']{color:#7a9b7d!important;}"
-
-    "table{background:#FFFFFF!important;color:#355E3B!important;"
-    "width:100%!important;border-radius:10px!important;overflow:hidden!important;}"
-
-    "th{background:#3EB489!important;color:#fff!important;"
-    "padding:10px 14px!important;font-family:'Heebo',sans-serif!important;font-weight:700!important;}"
-
-    "td{padding:9px 14px!important;border-bottom:1px solid #F4F1EA!important;}"
-
-    "hr{border-color:#E8E2D9!important;}"
-
-    "[data-testid='stAlert']{"
-    "background:#FFFFFF!important;"
-    "border-radius:8px!important;"
-    "color:#355E3B!important;}"
-)
-
-st.markdown(f"<style>{_OM_CSS}</style>", unsafe_allow_html=True)
+inject_css()
 
 db.init_db()
 
@@ -218,7 +355,7 @@ def _donut(value: int, total: int, label: str, color: str, unit: str = "") -> go
     fig = go.Figure(go.Pie(
         values=[max(value, 1), max(remaining, 0)],
         hole=0.72,
-        marker=dict(colors=[color, "#E8E2D9"], line=dict(width=0)),
+        marker=dict(colors=[color, "#E9ECEF"], line=dict(width=0)),
         textinfo="none",
         hoverinfo="skip",
         direction="clockwise",
@@ -227,11 +364,11 @@ def _donut(value: int, total: int, label: str, color: str, unit: str = "") -> go
     fig.add_annotation(
         text=f"<b>{value}</b><br><sub>{unit}</sub>",
         x=0.5, y=0.5,
-        font=dict(size=15, color="#355E3B", family="Heebo"),
+        font=dict(size=15, color="#1a1a1a", family="Heebo"),
         showarrow=False,
     )
     fig.update_layout(
-        title=dict(text=label, x=0.5, font=dict(size=13, color="#5a7a5e", family="Heebo")),
+        title=dict(text=label, x=0.5, font=dict(size=13, color="#6c757d", family="Heebo")),
         showlegend=False,
         margin=dict(t=30, b=5, l=5, r=5),
         height=140,
@@ -283,7 +420,7 @@ def _render_sidebar(uid, u):
     username = st.session_state.get("username") or db.get_username_by_phone(uid)
     with st.sidebar:
         st.markdown(
-            f"<div style='font-size:1.1rem;font-weight:900;color:#3EB489;margin-bottom:2px'>"
+            f"<div style='font-size:1.1rem;font-weight:900;color:#4CAF50;margin-bottom:2px'>"
             f"שלום, {username}! 👋</div>",
             unsafe_allow_html=True,
         )
@@ -340,8 +477,8 @@ def show_auth():
     _, center, _ = st.columns([1, 2, 1])
     with center:
         st.markdown(
-            "<h1 style='text-align:center;color:#3EB489;font-size:2.4rem;'>🥗 תזונה חכמה</h1>"
-            "<p style='text-align:center;color:#7a9b7d;font-size:1.05rem;'>רשת חברתית לתזונה בריאה</p>",
+            "<h1 style='text-align:center;color:#4CAF50;font-size:2.4rem;'>🥗 תזונה חכמה</h1>"
+            "<p style='text-align:center;color:#6c757d;font-size:1.05rem;'>רשת חברתית לתזונה בריאה</p>",
             unsafe_allow_html=True,
         )
         st.markdown("---")
@@ -532,7 +669,7 @@ def _pstep4(uid):
 
 def show_profile_setup(uid):
     st.markdown(
-        "<h1 style='color:#3EB489'>הגדרת פרופיל תזונה</h1>",
+        "<h1 style='color:#4CAF50'>הגדרת פרופיל תזונה</h1>",
         unsafe_allow_html=True,
     )
     st.progress(st.session_state.step / 4, text=f"שלב {st.session_state.step} מתוך 4")
@@ -552,7 +689,7 @@ def show_dashboard(uid, u):
     with tab_menu:
         name_disp = u.get("name", "").split()[0] if u.get("name") else ""
         st.markdown(
-            f"<h2 style='color:#3EB489;margin-bottom:4px;'>שלום, {name_disp}! 👋</h2>",
+            f"<h2 style='color:#4CAF50;margin-bottom:4px;'>שלום, {name_disp}! 👋</h2>",
             unsafe_allow_html=True,
         )
 
@@ -564,7 +701,7 @@ def show_dashboard(uid, u):
 
         dc1, dc2, dc3, dc4 = st.columns(4)
         dc1.plotly_chart(
-            _donut(consumed, target_cal, "קלוריות", "#3EB489", f"מתוך {target_cal}"),
+            _donut(consumed, target_cal, "קלוריות", "#4CAF50", f"מתוך {target_cal}"),
             use_container_width=True, config={"displayModeBar": False},
         )
         goal_pro  = max(int(target_cal * 0.30 / 4), 1)
