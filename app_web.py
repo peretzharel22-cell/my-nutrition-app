@@ -25,18 +25,20 @@ st.set_page_config(page_title="תזונה חכמה", page_icon="🥗", layout="w
 
 
 def inject_css() -> None:
-    """Inject all custom CSS in one place. Nothing is printed to the screen."""
+    """Inject all custom CSS. Nothing is printed to the screen."""
     css = """
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
 
-/* ── Reset & base ── */
+/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── Page background: pure white, Instagram-style ── */
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stApp"],
-section[data-testid="stMain"] {
-    background-color: #F8F9FA !important;
+section[data-testid="stMain"],
+[data-testid="block-container"] {
+    background-color: #FFFFFF !important;
     color: #1a1a1a !important;
     font-family: 'Heebo', sans-serif !important;
     line-height: 1.6 !important;
@@ -47,8 +49,8 @@ section[data-testid="stMain"] {
 .main .block-container {
     direction: rtl !important;
     text-align: right !important;
-    padding-top: 2rem;
-    max-width: 1100px;
+    padding-top: 1.5rem;
+    max-width: 1080px;
 }
 
 /* ── Typography ── */
@@ -74,8 +76,7 @@ h1, h2, h3, h4, h5 {
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
     background: #FFFFFF !important;
-    border-left: 1px solid #E9ECEF !important;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.04) !important;
+    border-left: 1px solid #DBDBDB !important;
 }
 [data-testid="stSidebar"] * {
     color: #1a1a1a !important;
@@ -85,34 +86,26 @@ h1, h2, h3, h4, h5 {
     background: #4CAF50 !important;
     border: none !important;
     border-radius: 8px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 5px !important;
     font-weight: 600 !important;
     font-size: 0.9rem !important;
     color: #fff !important;
-    transition: opacity 0.2s ease !important;
+    width: 100% !important;
+    transition: opacity 0.18s ease !important;
 }
-[data-testid="stSidebar"] button:hover {
-    opacity: 0.82 !important;
-    transform: none !important;
-}
+[data-testid="stSidebar"] button:hover { opacity: 0.80 !important; }
 
 /* ── Progress bar ── */
-.stProgress > div > div {
-    background: #4CAF50 !important;
-    border-radius: 4px !important;
-}
-.stProgress > div {
-    background: #E9ECEF !important;
-    border-radius: 4px !important;
-}
+.stProgress > div > div { background: #4CAF50 !important; border-radius: 4px !important; }
+.stProgress > div        { background: #EFEFEF !important; border-radius: 4px !important; }
 
 /* ── Forms ── */
 div[data-testid="stForm"] {
-    background: #FFFFFF !important;
-    border: 1px solid #E9ECEF !important;
-    border-radius: 12px !important;
-    padding: 24px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    padding: 22px !important;
+    box-shadow: none !important;
 }
 
 /* ── Inputs ── */
@@ -123,8 +116,8 @@ input, textarea, select,
     text-align: right !important;
     background: #FFFFFF !important;
     color: #1a1a1a !important;
-    border: 1px solid #DEE2E6 !important;
-    border-radius: 8px !important;
+    border: 1px solid #DBDBDB !important;
+    border-radius: 10px !important;
     font-family: 'Heebo', sans-serif !important;
     line-height: 1.6 !important;
     transition: border-color 0.15s ease !important;
@@ -132,91 +125,115 @@ input, textarea, select,
 input:focus, textarea:focus {
     border-color: #4CAF50 !important;
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(76,175,80,0.12) !important;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.10) !important;
 }
 
-/* ── Buttons ── */
-.stButton > button[kind="primary"] {
+/* ── Primary buttons ── */
+.stButton > button[kind="primary"],
+[data-testid="stFormSubmitButton"] > button {
     background: #4CAF50 !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
     font-family: 'Heebo', sans-serif !important;
     color: #fff !important;
-    letter-spacing: 0.2px !important;
-    transition: opacity 0.2s ease !important;
+    letter-spacing: 0.3px !important;
+    transition: opacity 0.18s ease !important;
 }
-.stButton > button[kind="primary"]:hover {
-    opacity: 0.85 !important;
-    box-shadow: 0 4px 12px rgba(76,175,80,0.28) !important;
+.stButton > button[kind="primary"]:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
+    opacity: 0.82 !important;
+    box-shadow: 0 4px 14px rgba(76,175,80,0.25) !important;
 }
+
+/* ── Secondary buttons ── */
 .stButton > button[kind="secondary"] {
     background: #FFFFFF !important;
-    border: 1px solid #4CAF50 !important;
-    border-radius: 8px !important;
-    color: #4CAF50 !important;
+    border: 1.5px solid #DBDBDB !important;
+    border-radius: 10px !important;
+    color: #1a1a1a !important;
     font-weight: 600 !important;
     font-family: 'Heebo', sans-serif !important;
-    transition: opacity 0.2s ease !important;
+    transition: opacity 0.18s ease !important;
 }
-.stButton > button[kind="secondary"]:hover {
-    opacity: 0.75 !important;
-}
+.stButton > button[kind="secondary"]:hover { opacity: 0.70 !important; }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 4px;
+    gap: 0;
     background: transparent;
-    border-bottom: 1px solid #E9ECEF;
+    border-bottom: 1px solid #DBDBDB;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 6px 6px 0 0 !important;
-    padding: 8px 16px !important;
+    padding: 10px 18px !important;
     font-weight: 600 !important;
     font-family: 'Heebo', sans-serif !important;
-    color: #6c757d !important;
+    color: #8e8e8e !important;
     border-bottom: 2px solid transparent !important;
     background: transparent !important;
+    border-radius: 0 !important;
 }
 .stTabs [aria-selected="true"] {
-    color: #4CAF50 !important;
-    border-bottom: 2px solid #4CAF50 !important;
+    color: #1a1a1a !important;
+    border-bottom: 2px solid #1a1a1a !important;
     background: transparent !important;
+}
+
+/* ── Feed post card ── */
+.feed-card {
+    background: #FFFFFF;
+    border: 1px solid #DBDBDB;
+    border-radius: 15px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    word-wrap: break-word;
+    direction: rtl;
+    text-align: right;
 }
 
 /* ── Recipe card ── */
 .recipe-card {
-    background: #FFFFFF;
-    border: 1px solid #E9ECEF;
-    border-radius: 12px;
+    background: #F0F2F5;
+    border: none;
+    border-radius: 15px;
     padding: 18px 20px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     overflow: hidden;
     word-wrap: break-word;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    direction: rtl;
+    text-align: right;
+    transition: box-shadow 0.2s ease;
 }
-.recipe-card:hover {
-    box-shadow: 0 4px 16px rgba(76,175,80,0.14);
-    border-color: #4CAF50;
-}
+.recipe-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
 .recipe-card b { font-weight: 700; }
+
+/* ── Donut row ── */
+.donut-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    margin-bottom: 12px;
+}
 
 /* ── Community card ── */
 .community-card {
-    background: #FFFFFF;
-    border: 1px solid #FFE0DC;
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin: 6px 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    background: #FFF8F7;
+    border: 1px solid #FFD5CC;
+    border-radius: 15px;
+    padding: 14px 18px;
+    margin: 8px 0;
     overflow: hidden;
     word-wrap: break-word;
+    direction: rtl;
+    text-align: right;
     transition: box-shadow 0.18s ease;
 }
-.community-card:hover {
-    box-shadow: 0 4px 12px rgba(255,107,107,0.12);
-}
+.community-card:hover { box-shadow: 0 4px 12px rgba(255,112,67,0.12); }
 
 /* ── Badges ── */
 .badge {
@@ -250,12 +267,44 @@ input:focus, textarea:focus {
 }
 
 /* ── Metrics ── */
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    background: #4CAF50;
+    color: #fff !important;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-right: 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.badge-comm { background: #FF7043 !important; }
+.badge-gold { background: #F9A825 !important; }
+.stars { color: #F9A825; font-size: 1rem; letter-spacing: 1px; }
+
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+}
+[data-testid="stExpander"] summary {
+    font-family: 'Heebo', sans-serif !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    padding: 10px 14px !important;
+}
+
+/* ── Metrics ── */
 [data-testid="stMetric"] {
-    background: #FFFFFF !important;
-    border: 1px solid #E9ECEF !important;
-    border-radius: 12px !important;
-    padding: 16px !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    background: #F0F2F5 !important;
+    border: none !important;
+    border-radius: 15px !important;
+    padding: 14px 16px !important;
+    box-shadow: none !important;
 }
 [data-testid="stMetricValue"] {
     color: #4CAF50 !important;
@@ -263,7 +312,7 @@ input:focus, textarea:focus {
     font-family: 'Heebo', sans-serif !important;
 }
 [data-testid="stMetricLabel"] {
-    color: #6c757d !important;
+    color: #8e8e8e !important;
     font-family: 'Heebo', sans-serif !important;
 }
 
@@ -272,47 +321,45 @@ table {
     background: #FFFFFF !important;
     color: #1a1a1a !important;
     width: 100% !important;
-    border-radius: 10px !important;
+    border-radius: 15px !important;
     overflow: hidden !important;
     border-collapse: collapse !important;
 }
 th {
-    background: #4CAF50 !important;
-    color: #fff !important;
+    background: #F0F2F5 !important;
+    color: #1a1a1a !important;
     padding: 10px 16px !important;
     font-family: 'Heebo', sans-serif !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
+    border-bottom: 2px solid #DBDBDB !important;
 }
 td {
     padding: 9px 16px !important;
-    border-bottom: 1px solid #F1F3F5 !important;
+    border-bottom: 1px solid #F0F2F5 !important;
     vertical-align: top !important;
 }
 
 /* ── Thin dividers ── */
 hr {
     border: none !important;
-    border-top: 1px solid #E9ECEF !important;
-    margin: 16px 0 !important;
+    border-top: 1px solid #DBDBDB !important;
+    margin: 14px 0 !important;
 }
 
 /* ── Alerts ── */
 [data-testid="stAlert"] {
-    background: #FFFFFF !important;
-    border-radius: 8px !important;
+    background: #F0F2F5 !important;
+    border-radius: 12px !important;
+    border: none !important;
     border-right: 3px solid #4CAF50 !important;
     color: #1a1a1a !important;
     padding: 12px 16px !important;
 }
-[data-testid="stAlert"][data-baseweb="notification"][kind="warning"],
-div[data-testid="stAlert"].st-emotion-cache-1bt9eao {
-    border-right-color: #FF7043 !important;
-}
 
-/* ── Captions & secondary text ── */
+/* ── Captions ── */
 [data-testid="stCaptionContainer"],
-.stCaption { color: #6c757d !important; font-size: 0.85rem !important; }
+.stCaption { color: #8e8e8e !important; font-size: 0.83rem !important; }
 """
     st.markdown("<style>" + css + "</style>", unsafe_allow_html=True)
 
@@ -595,47 +642,51 @@ def _pstep3():
 def _pstep4(uid):
     st.subheader("שלב 4 מתוך 4 - מטרה ומחויבות")
     d = st.session_state.reg
-    goal_opts = {
-        "הגדלת מסה שרירית": "bulk",
-        "ירידה במשקל":       "cut",
-        "שמירה על המשקל":    "maintain",
-    }
-    goal_label = st.radio("מה המטרה שלך?", list(goal_opts.keys()))
-    goal = goal_opts[goal_label]
+    with st.form("ps4"):
+        goal_opts = {
+            "הגדלת מסה שרירית": "bulk",
+            "ירידה במשקל":       "cut",
+            "שמירה על המשקל":    "maintain",
+        }
+        goal_label = st.radio("מה המטרה שלך?", list(goal_opts.keys()))
+        goal = goal_opts[goal_label]
 
-    gkg = None
-    commit = None
-    if goal != "maintain":
-        verb = "לעלות" if goal == "bulk" else "לרדת"
-        gkg = st.number_input(f"כמה קילוגרם תרצה {verb}?",
-                               1.0, 60.0, float(d.get("goal_kg") or 10), 0.5, format="%.1f")
-        commit = st.radio("רמת מחויבות", list(COMMITMENT.keys()), index=1,
-                          captions=["0.25 ק\"ג/שבוע", "0.5 ק\"ג/שבוע (מומלץ)",
-                                    "0.8 ק\"ג/שבוע", "1 ק\"ג/שבוע"])
+        gkg = None
+        commit = None
+        if goal != "maintain":
+            verb = "לעלות" if goal == "bulk" else "לרדת"
+            gkg = st.number_input(f"כמה קילוגרם תרצה {verb}?",
+                                   1.0, 60.0, float(d.get("goal_kg") or 10), 0.5, format="%.1f")
+            commit = st.radio("רמת מחויבות", list(COMMITMENT.keys()), index=1,
+                              captions=["0.25 ק\"ג/שבוע", "0.5 ק\"ג/שבוע (מומלץ)",
+                                        "0.8 ק\"ג/שבוע", "1 ק\"ג/שבוע"])
 
-    if d.get("weight_kg") and d.get("height_cm") and d.get("age") and d.get("sex"):
-        tdee_v = _tdee(float(d["weight_kg"]), float(d["height_cm"]),
-                       int(d["age"]), str(d["sex"]), int(d.get("activity", 2)))
-        ci = COMMITMENT.get(commit, {}) if commit else {}
-        delta = ci.get("delta", 0)
-        bonus = ci.get("bulk_bonus", 0) if goal == "bulk" else 0
-        tgt = tdee_v if goal == "maintain" else (
-            tdee_v - delta if goal == "cut" else tdee_v + delta + bonus
-        )
-        c1, c2, c3 = st.columns(3)
-        c1.metric("TDEE", f"{tdee_v} קל'")
-        c2.metric("יעד יומי", f"{tgt} קל'")
-        if goal != "maintain" and commit and gkg:
-            weeks = round(float(gkg) / COMMITMENT[commit]["kg_week"])
-            c3.metric("צפי", f"~{weeks} שבועות")
-        if goal == "bulk" and commit == "קיצוני ⚡":
-            st.warning("מצב קיצוני: עודף 2100 קל' ביום - מאוד אינטנסיבי!")
+        if d.get("weight_kg") and d.get("height_cm") and d.get("age") and d.get("sex"):
+            tdee_v = _tdee(float(d["weight_kg"]), float(d["height_cm"]),
+                           int(d["age"]), str(d["sex"]), int(d.get("activity", 2)))
+            ci = COMMITMENT.get(commit, {}) if commit else {}
+            delta = ci.get("delta", 0)
+            bonus = ci.get("bulk_bonus", 0) if goal == "bulk" else 0
+            tgt = tdee_v if goal == "maintain" else (
+                tdee_v - delta if goal == "cut" else tdee_v + delta + bonus
+            )
+            c1, c2, c3 = st.columns(3)
+            c1.metric("TDEE", f"{tdee_v} קל'")
+            c2.metric("יעד יומי", f"{tgt} קל'")
+            if goal != "maintain" and commit and gkg:
+                weeks = round(float(gkg) / COMMITMENT[commit]["kg_week"])
+                c3.metric("צפי", f"~{weeks} שבועות")
+            if goal == "bulk" and commit == "קיצוני ⚡":
+                st.warning("מצב קיצוני: עודף 2100 קל' ביום - מאוד אינטנסיבי!")
 
-    st.markdown("---")
-    b1, b2 = st.columns(2)
-    if b1.button("חזור", use_container_width=True):
+        st.markdown("---")
+        b1, b2 = st.columns(2)
+        go_back = b1.form_submit_button("חזור", use_container_width=True)
+        go_next = b2.form_submit_button("צור פרופיל", use_container_width=True, type="primary")
+
+    if go_back:
         _go_back()
-    if b2.button("צור פרופיל", use_container_width=True, type="primary"):
+    if go_next:
         if not d.get("weight_kg") or not d.get("height_cm"):
             st.error("חזור ומלא נתונים פיזיים")
             return
@@ -699,11 +750,6 @@ def show_dashboard(uid, u):
 
         today_logs = db.get_today_logs(uid)
 
-        dc1, dc2, dc3, dc4 = st.columns(4)
-        dc1.plotly_chart(
-            _donut(consumed, target_cal, "קלוריות", "#4CAF50", f"מתוך {target_cal}"),
-            use_container_width=True, config={"displayModeBar": False},
-        )
         goal_pro  = max(int(target_cal * 0.30 / 4), 1)
         goal_carb = max(int(target_cal * 0.45 / 4), 1)
         goal_fat  = max(int(target_cal * 0.25 / 9), 1)
@@ -715,16 +761,23 @@ def show_dashboard(uid, u):
                 est_pro  += r.get("pro",  0)
                 est_carb += r.get("carb", 0)
                 est_fat  += r.get("fat",  0)
+
+        # Compact horizontal donut row
+        dc1, dc2, dc3, dc4 = st.columns([1, 1, 1, 1])
+        dc1.plotly_chart(
+            _donut(consumed,  target_cal, "🔥 קלוריות", "#4CAF50", f"/{target_cal}"),
+            use_container_width=True, config={"displayModeBar": False},
+        )
         dc2.plotly_chart(
-            _donut(est_pro,  goal_pro,  "חלבון",   "#F88379", "g"),
+            _donut(est_pro,   goal_pro,   "💪 חלבון",   "#FF7043", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc3.plotly_chart(
-            _donut(est_carb, goal_carb, "פחמימות", "#f57c00", "g"),
+            _donut(est_carb,  goal_carb,  "🌾 פחמימות", "#F9A825", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
         dc4.plotly_chart(
-            _donut(est_fat,  goal_fat,  "שומן",    "#8e24aa", "g"),
+            _donut(est_fat,   goal_fat,   "🥑 שומן",    "#8e24aa", "g"),
             use_container_width=True, config={"displayModeBar": False},
         )
 
@@ -762,7 +815,7 @@ def show_dashboard(uid, u):
             st.markdown(
                 f'<div class="recipe-card">'
                 f'<b style="font-size:1.05rem">{current.get("name","---")}{web_badge}</b><br>'
-                f'🔥 <b style="color:#F88379">{current.get("cal",0)}</b> קל\'&nbsp;|&nbsp;'
+                f'🔥 <b style="color:#FF7043">{current.get("cal",0)}</b> קל\'&nbsp;|&nbsp;'
                 f'💪 {current.get("pro",0)}g חלבון&nbsp;|&nbsp;'
                 f'🍞 {current.get("carb",0)}g פחמימות&nbsp;|&nbsp;'
                 f'🥑 {current.get("fat",0)}g שומן&nbsp;|&nbsp;'
@@ -994,17 +1047,21 @@ def show_community(uid, u):
         if not posts:
             st.info("הפיד ריק - היה הראשון לפרסם!")
         for post in posts:
-            col_text, col_del = st.columns([10, 1])
-            with col_text:
-                posted_date = str(post.get("posted_at", ""))[:16].replace("T", " ")
-                st.write(f"**{post['username']}** · {posted_date}")
-                st.write(post["content"])
-            with col_del:
+            posted_date = str(post.get("posted_at", ""))[:16].replace("T", " ")
+            with st.container():
+                st.markdown(
+                    f'<div class="feed-card">'
+                    f'<div style="font-weight:700;font-size:.95rem">{post["username"]}'
+                    f'<span style="color:#8e8e8e;font-weight:400;font-size:.82rem;margin-right:8px">· {posted_date}</span>'
+                    f'</div>'
+                    f'<div style="margin-top:6px;line-height:1.6">{post["content"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
                 if post["phone"] == uid:
-                    if st.button("🗑", key=f"del_post_{post['id']}", help="מחק פוסט"):
+                    if st.button("🗑 מחק", key=f"del_post_{post['id']}", help="מחק פוסט"):
                         db.delete_feed_post(post["id"], uid)
                         st.rerun()
-            st.markdown("---")
 
     with tab_recipes:
         st.markdown("<h2>מתכוני קהילה</h2>", unsafe_allow_html=True)
@@ -1057,7 +1114,7 @@ def show_community(uid, u):
                 r_prep  = fd2.text_input("זמן הכנה", placeholder="30 דקות")
                 r_diff  = fd3.selectbox("רמת קושי", ["", "קל", "בינוני", "קשה"])
                 ci1, ci2, ci3, ci4 = st.columns(4)
-                r_cal  = ci1.number_input("קלוריות",    0, 3000, st.session_state.get("est_cal",  400), step=10)
+                r_cal  = ci1.number_input("קלוריות",    0, 4000, st.session_state.get("est_cal",  400), step=10)
                 r_pro  = ci2.number_input("חלבון (g)",  0, 200,  st.session_state.get("est_pro",   30), step=1)
                 r_carb = ci3.number_input("פחמימות (g)",0, 400,  st.session_state.get("est_carb",  40), step=1)
                 r_fat  = ci4.number_input("שומן (g)",   0, 200,  st.session_state.get("est_fat",   15), step=1)
@@ -1093,7 +1150,7 @@ def show_community(uid, u):
                 f'<div class="recipe-card">'
                 f'<b style="font-size:1.05rem">{rec["name"]}</b>'
                 f'&nbsp;<span class="badge badge-comm">קהילה · {cat_heb}</span><br>'
-                f'🔥 <b style="color:#F88379">{rec.get("calories",0)}</b> קל\'&nbsp;|&nbsp;'
+                f'🔥 <b style="color:#FF7043">{rec.get("calories",0)}</b> קל\'&nbsp;|&nbsp;'
                 f'💪 {rec.get("protein",0)}g&nbsp;|&nbsp;'
                 f'🍞 {rec.get("carbs",0)}g&nbsp;|&nbsp;'
                 f'🥑 {rec.get("fat",0)}g'
